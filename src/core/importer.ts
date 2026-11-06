@@ -120,7 +120,7 @@ export function importVault(
         if (sim.unlocked[a.id] || !a.check(ctx)) continue;
         sim.unlocked[a.id] = dayTimestamp(key);
         unlockedAt[a.id] = sim.unlocked[a.id];
-        sim.xp += a.reward;
+        sim.xp += Math.round(a.reward * rules.rewardFactor);
         any = true;
       }
       if (!any) break;
@@ -165,6 +165,7 @@ export function importVault(
     progress.streak.best = Math.max(progress.streak.best, sim.streak.best);
   }
   progress.importedAt = Date.now();
+  progress.knownAchievements = ACHIEVEMENTS.map((a) => a.id);
 
   return {
     notes: notes.length,
@@ -174,4 +175,71 @@ export function importVault(
     levelBefore,
     levelAfter: levelInfo(progress.xp).level,
   };
+}
+
+/** Achievements added by an update since progress was last evaluated. */
+export function unknownAchievements(progress: Progress): string[] {
+  if (!progress.knownAchievements) return [];
+  const known = new Set(progress.knownAchievements);
+  return ACHIEVEMENTS.filter((a) => !known.has(a.id) && !progress.unlocked[a.id]).map((a) => a.id);
+}
+
+/**
+ * Checks the given achievements retroactively against the stored day statistics (mutates `progress`).
+ * Each one gets the date on which it would have been earned; only its reward is added as XP.
+ * Counters without per-day history (folders, quests, night/early writing) are checked against
+ * today's totals.
+ */
+export function backfillAchievements(
+  progress: Progress,
+  ids: string[],
+  rules: XpRules,
+  streakMinWords: number,
+  noteCount: number,
+  today: string = dayKey(),
+): string[] {
+  const targets = ACHIEVEMENTS.filter((a) => ids.includes(a.id) && !progress.unlocked[a.id]);
+  const unlocked: string[] = [];
+  if (targets.length > 0) {
+    const sim = emptyProgress();
+    let notes = 0;
+    const check = (ctx: AchievementContext, ts: number) => {
+      for (const a of targets) {
+        if (progress.unlocked[a.id] || !a.check(ctx)) continue;
+        progress.unlocked[a.id] = ts;
+        progress.xp += Math.round(a.reward * rules.rewardFactor);
+        unlocked.push(a.id);
+      }
+    };
+
+    for (const key of Object.keys(progress.days).sort()) {
+      if (key > today) continue;
+      const day = progress.days[key];
+      sim.xp += day.xp;
+      sim.totals.words += day.words;
+      sim.totals.notesCreated += day.notes;
+      sim.totals.links += day.links;
+      sim.totals.tags += day.tags;
+      sim.totals.tasks += day.tasks;
+      notes += day.notes;
+      if (day.words >= streakMinWords) markStreakDay(sim.streak, key);
+      check(
+        { progress: sim, level: levelInfo(sim.xp).level, todayWords: day.words, noteCount: notes, folderCount: 0 },
+        dayTimestamp(key),
+      );
+    }
+    // everything without history, against the real current state
+    check(
+      {
+        progress,
+        level: levelInfo(progress.xp).level,
+        todayWords: progress.days[today]?.words ?? 0,
+        noteCount,
+        folderCount: progress.totals.foldersCreated,
+      },
+      Date.now(),
+    );
+  }
+  progress.knownAchievements = ACHIEVEMENTS.map((a) => a.id);
+  return unlocked;
 }

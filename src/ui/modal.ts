@@ -1,5 +1,6 @@
 import { App, Modal, setIcon } from "obsidian";
 import { ACHIEVEMENTS, RARITY_ORDER, type Achievement, type Category } from "../core/achievements";
+import { scaledReward, streakMinWords } from "../core/difficulty";
 import { levelInfo } from "../core/levels";
 import { questById, questValue, type QuestDef } from "../core/quests";
 import { displayedStreak } from "../core/streak";
@@ -148,7 +149,8 @@ export class QuestModal extends Modal {
     const body = card.createDiv({ cls: "vq-card-body" });
     const top = body.createDiv({ cls: "vq-card-top" });
     top.createDiv({ cls: "vq-card-title", text: achievementTitle(a) });
-    if (a.reward > 0) top.createDiv({ cls: "vq-card-reward", text: t("modal.reward", { xp: a.reward }) });
+    const reward = scaledReward(a.reward, this.host.settings.difficulty);
+    if (reward > 0) top.createDiv({ cls: "vq-card-reward", text: t("modal.reward", { xp: reward }) });
     body.createDiv({ cls: "vq-card-desc", text: achievementDesc(a) });
     const meta = body.createDiv({ cls: "vq-card-meta" });
     const left = meta.createDiv({ cls: "vq-card-meta-left" });
@@ -186,7 +188,10 @@ export class QuestModal extends Modal {
       const body = row.createDiv({ cls: "vq-quest-body" });
       const top = body.createDiv({ cls: "vq-quest-top" });
       top.createDiv({ cls: "vq-quest-title", text: questLabel(q) });
-      top.createDiv({ cls: "vq-card-reward", text: t("modal.reward", { xp: q.reward }) });
+      top.createDiv({
+        cls: "vq-card-reward",
+        text: t("modal.reward", { xp: scaledReward(q.reward, settings.difficulty) }),
+      });
       const bar = body.createDiv({ cls: "vq-progress is-small" });
       bar.createDiv({ cls: "vq-progress-fill" }).style.width = `${(value / q.target) * 100}%`;
       body.createDiv({
@@ -229,10 +234,11 @@ export class QuestModal extends Modal {
     const chart = this.bodyEl.createDiv({ cls: "vq-chart" });
     const days = Array.from({ length: 14 }, (_, i) => addDays(today, i - 13));
     const values = days.map((d) => progress.days[d]?.words ?? 0);
-    const max = Math.max(...values, settings.streakMinWords, 1);
+    const minWords = streakMinWords(settings.difficulty);
+    const max = Math.max(...values, minWords, 1);
     days.forEach((d, i) => {
       const col = chart.createDiv({ cls: "vq-chart-col" });
-      if (values[i] >= settings.streakMinWords) col.addClass("is-streak");
+      if (values[i] >= minWords) col.addClass("is-streak");
       if (d === today) col.addClass("is-today");
       const barWrap = col.createDiv({ cls: "vq-chart-bar-wrap" });
       const bar = barWrap.createDiv({ cls: "vq-chart-bar" });
@@ -240,7 +246,7 @@ export class QuestModal extends Modal {
       bar.setAttribute("aria-label", `${d}: ${formatNumber(values[i])}`);
       col.createDiv({ cls: "vq-chart-label", text: d === today ? t("stats.today") : d.slice(8) });
     });
-    this.bodyEl.createDiv({ cls: "vq-muted", text: t("stats.streakHint", { n: settings.streakMinWords }) });
+    this.bodyEl.createDiv({ cls: "vq-muted", text: t("stats.streakHint", { n: minWords }) });
   }
 }
 

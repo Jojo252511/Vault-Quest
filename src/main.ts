@@ -10,8 +10,15 @@ import {
   type Editor,
   type MarkdownFileInfo,
 } from "obsidian";
-import { buildContext, newlyEarned } from "./core/achievements";
-import { importVault, isExcluded, type ScannedNote } from "./core/importer";
+import { ACHIEVEMENTS, buildContext, newlyEarned } from "./core/achievements";
+import { MAX_WORDS_PER_EDIT, scaledReward, streakMinWords, xpRules } from "./core/difficulty";
+import {
+  backfillAchievements,
+  importVault,
+  isExcluded,
+  unknownAchievements,
+  type ScannedNote,
+} from "./core/importer";
 import { levelInfo } from "./core/levels";
 import { newlyCompleted, pickQuests } from "./core/quests";
 import { Sounds } from "./core/sounds";
@@ -66,6 +73,7 @@ export default class VaultQuestPlugin extends Plugin {
     this.app.workspace.onLayoutReady(async () => {
       if (tampered) new Notice(t("import.tampered"), 10_000);
       if (!this.progress.importedAt) await this.runImport();
+      this.backfillNewAchievements();
       this.ensureQuests();
       this.seedOpenNotes();
       this.ready = true;
@@ -146,8 +154,8 @@ export default class VaultQuestPlugin extends Plugin {
         this.progress,
         notes,
         folders,
-        this.settings.xp,
-        this.settings.streakMinWords,
+        xpRules(this.settings.difficulty),
+        streakMinWords(this.settings.difficulty),
         undefined,
         this.settings.importXpPercent / 100,
       );
@@ -169,6 +177,24 @@ export default class VaultQuestPlugin extends Plugin {
     }
   }
 
+  /** Achievements added by a plugin update are checked retroactively against the stored statistics. */
+  private backfillNewAchievements(): void {
+    // progress from v0.1 has no list yet; everything that existed then was already evaluated
+    this.progress.knownAchievements ??= ACHIEVEMENTS.map((a) => a.id);
+    const ids = unknownAchievements(this.progress);
+    if (ids.length === 0) return;
+    const notes = this.app.vault.getMarkdownFiles().filter((f) => !this.excluded(f.path)).length;
+    const unlocked = backfillAchievements(
+      this.progress,
+      ids,
+      xpRules(this.settings.difficulty),
+      streakMinWords(this.settings.difficulty),
+      notes,
+    );
+    void this.saveAll();
+    new Notice(t("backfill.done", { total: ids.length, count: unlocked.length }), 10_000);
+  }
+
   async reimport(): Promise<void> {
     this.progress = emptyProgress();
     this.seen.clear();
@@ -181,6 +207,7 @@ export default class VaultQuestPlugin extends Plugin {
   async resetProgress(): Promise<void> {
     this.progress = emptyProgress();
     this.progress.importedAt = Date.now(); // explicit reset: don't import again on next start
+    this.progress.knownAchievements = ACHIEVEMENTS.map((a) => a.id);
     this.seen.clear();
     this.seedOpenNotes();
     this.ensureQuests();
@@ -274,9 +301,9 @@ export default class VaultQuestPlugin extends Plugin {
   }
 
   private award(gain: Gain): void {
-    const rules = this.settings.xp;
+    const rules = xpRules(this.settings.difficulty);
     // pasted text only counts up to the per-edit cap
-    const words = Math.min(gain.words ?? 0, rules.maxPerEdit);
+    const words = Math.min(gain.words ?? 0, MAX_WORDS_PER_EDIT);
     const notes = gain.notes ?? 0;
     const links = gain.links ?? 0;
     const tags = gain.tags ?? 0;
@@ -304,7 +331,7 @@ export default class VaultQuestPlugin extends Plugin {
     if (words > 0 && hour < 5) tot.nightWords += words;
     if (words > 0 && hour >= 5 && hour < 7) tot.earlyWords += words;
 
-    if (day.words >= this.settings.streakMinWords) markStreakDay(this.progress.streak, dayKey());
+    if (day.words >= streakMinWords(this.settings.difficulty)) markStreakDay(this.progress.streak, dayKey());
 
     this.afterChange(xp, true);
   }
@@ -352,14 +379,15 @@ export default class VaultQuestPlugin extends Plugin {
     for (const q of newlyCompleted(quests, this.progress.days[dayKey()])) {
       quests.completed.push(q.id);
       this.progress.totals.questsCompleted++;
-      this.progress.xp += q.reward;
-      this.today().xp += q.reward;
+      const reward = scaledReward(q.reward, this.settings.difficulty);
+      this.progress.xp += reward;
+      this.today().xp += reward;
       this.sounds.quest();
       this.toast({
         icon: q.icon,
         heading: t("toast.quest"),
         title: questLabel(q),
-        reward: t("modal.reward", { xp: q.reward }),
+        reward: t("modal.reward", { xp: reward }),
         variant: "quest",
       });
     }
@@ -372,15 +400,16 @@ export default class VaultQuestPlugin extends Plugin {
       const earned = newlyEarned(buildContext(this.progress, files, 0));
       if (earned.length === 0) break;
       for (const a of earned) {
+        const reward = scaledReward(a.reward, this.settings.difficulty);
         this.progress.unlocked[a.id] = Date.now();
-        this.progress.xp += a.reward;
+        this.progress.xp += reward;
         this.sounds.achievement();
         this.toast({
           icon: a.icon,
           heading: t("toast.achievement"),
           title: achievementTitle(a),
           description: achievementDesc(a),
-          reward: a.reward > 0 ? t("modal.reward", { xp: a.reward }) : undefined,
+          reward: reward > 0 ? t("modal.reward", { xp: reward }) : undefined,
           variant: a.rarity,
         });
       }

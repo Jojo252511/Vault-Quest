@@ -1,6 +1,7 @@
 import { App, Notice, PluginSettingTab, Setting, type Plugin } from "obsidian";
-import { setLanguage, t } from "../i18n";
-import type { Language, Settings, XpRules } from "../types";
+import { DIFFICULTY_ORDER, IMPORT_XP_STEPS, streakMinWords, xpRules } from "../core/difficulty";
+import { formatDecimal, setLanguage, t, type TranslationKey } from "../i18n";
+import type { Difficulty, Language, Settings } from "../types";
 import { ConfirmModal } from "./modal";
 
 export interface SettingsHost extends Plugin {
@@ -64,39 +65,47 @@ export class VaultQuestSettingTab extends PluginSettingTab {
           }),
       );
 
-    // xp
+    // difficulty
     new Setting(containerEl).setName(t("settings.xp")).setHeading();
-    const num = (key: keyof XpRules, name: Parameters<typeof t>[0], desc?: Parameters<typeof t>[0]) => {
-      const setting = new Setting(containerEl).setName(t(name));
-      if (desc) setting.setDesc(t(desc));
-      setting.addText((tx) => {
-        tx.inputEl.type = "number";
-        tx.inputEl.min = "0";
-        tx.setValue(String(s.xp[key])).onChange(async (v) => {
-          const n = Number(v);
-          if (Number.isFinite(n) && n >= 0) {
-            s.xp[key] = n;
-            await save();
-          }
+    const rules = xpRules(s.difficulty);
+    const desc = createFragment((f) => {
+      f.appendText(t("settings.difficulty.desc"));
+      f.createDiv({
+        cls: "vq-setting-values",
+        text: t("settings.difficulty.values", {
+          word: formatDecimal(rules.perWord),
+          note: formatDecimal(rules.perNote),
+          link: formatDecimal(rules.perLink),
+          tag: formatDecimal(rules.perTag),
+          task: formatDecimal(rules.perTask),
+          streak: streakMinWords(s.difficulty),
+          reward: formatDecimal(rules.rewardFactor),
+        }),
+      });
+    });
+    new Setting(containerEl)
+      .setName(t("settings.difficulty"))
+      .setDesc(desc)
+      .addDropdown((d) => {
+        for (const id of DIFFICULTY_ORDER) d.addOption(id, t(`difficulty.${id}` as TranslationKey));
+        d.setValue(s.difficulty).onChange(async (v) => {
+          s.difficulty = v as Difficulty;
+          await save();
+          this.display();
         });
       });
-    };
-    num("perWord", "settings.xp.word");
-    num("perNote", "settings.xp.note");
-    num("perLink", "settings.xp.link");
-    num("perTag", "settings.xp.tag");
-    num("perTask", "settings.xp.task");
-    num("maxPerEdit", "settings.xp.max", "settings.xp.max.desc");
     new Setting(containerEl)
       .setName(t("settings.xp.import"))
       .setDesc(t("settings.xp.import.desc"))
-      .addSlider((sl) =>
-        sl
-          .setLimits(0, 100, 5)
-          .setValue(s.importXpPercent)
-          .setDynamicTooltip()
-          .onChange(async (v) => ((s.importXpPercent = v), await save())),
-      );
+      .addDropdown((d) => {
+        for (const step of IMPORT_XP_STEPS) {
+          d.addOption(String(step), step === 25 ? t("settings.xp.import.default", { n: step }) : `${step} %`);
+        }
+        d.setValue(String(s.importXpPercent)).onChange(async (v) => {
+          s.importXpPercent = Number(v);
+          await save();
+        });
+      });
 
     // quests
     new Setting(containerEl).setName(t("settings.quests")).setHeading();
@@ -110,16 +119,6 @@ export class VaultQuestSettingTab extends PluginSettingTab {
         .setDynamicTooltip()
         .onChange(async (v) => ((s.questsPerDay = v), await save())),
     );
-    new Setting(containerEl).setName(t("settings.streak.min")).addText((tx) => {
-      tx.inputEl.type = "number";
-      tx.setValue(String(s.streakMinWords)).onChange(async (v) => {
-        const n = Number(v);
-        if (Number.isFinite(n) && n >= 0) {
-          s.streakMinWords = n;
-          await save();
-        }
-      });
-    });
 
     // sounds
     new Setting(containerEl).setName(t("settings.sounds")).setHeading();

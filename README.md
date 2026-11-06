@@ -23,19 +23,23 @@ Interface in English and German (follows Obsidian's language or can be set manua
 
 ## How XP is counted
 
-| Action | Default XP |
-| --- | --- |
-| New word | 1 |
-| New note | 10 |
-| New link (`[[...]]` or Markdown link) | 5 |
-| New tag (`#tag` or frontmatter) | 3 |
-| Completed task (`- [x]`) | 5 |
+Choose a difficulty in the settings. It sets all XP values and the streak threshold at once:
+
+| Difficulty | XP per word | per note | per link | per tag | per task | Rewards | Streak from |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Easy (occasional use) | 2 | 20 | 10 | 6 | 10 | ×2 | 25 words |
+| Medium (default) | 1 | 10 | 5 | 3 | 5 | ×1 | 50 words |
+| Hard | 0.75 | 7.5 | 3.75 | 2.25 | 3.75 | ×0.75 | 100 words |
+| Very hard | 0.5 | 5 | 2.5 | 1.5 | 2.5 | ×0.5 | 200 words |
+| Hardcore | 0.25 | 2.5 | 1.25 | 0.75 | 1.25 | ×0.25 | 300 words |
+
+"Rewards" scales the bonus XP of quests and achievements. A new difficulty applies to XP earned from then on; use *Reset and re-import* to recalculate everything.
 
 - Only growth counts. Vault Quest remembers the highest count per note, so deleting and re-typing never earns XP twice.
-- A single edit earns at most 150 XP (configurable), so pasting a long text doesn't count fully.
-- Frontmatter, code blocks, comments and URLs are not counted as words.
+- A single edit counts at most 150 words, so pasting a long text doesn't count fully.
+- Frontmatter, code blocks, comments, URLs and task checkboxes are not counted as words.
 - Excluded folders never earn XP (default: `Clippings`, the Web Clipper folder).
-- Existing content earns 25 % XP on the retroactive import (configurable). It always counts fully for achievements and statistics.
+- Existing content earns 0, 10, 25 (default), 50 or 100 % XP on the retroactive import. It always counts fully for achievements and statistics.
 
 Level curve: level *n* needs `100 · n · (n + 1)` XP in total (level 1 = 200, level 10 = 11,000, level 50 = 255,000).
 
@@ -74,6 +78,14 @@ For development, clone this repository directly into `<vault>/.obsidian/plugins/
 | `src/i18n/` | English and German translations |
 | `styles.css` | Theme-native styles |
 | `tests/` | Unit tests for `src/core/` |
+
+### Adding achievements
+
+1. Add an entry to `ACHIEVEMENTS` in `src/core/achievements.ts` (unique `id`, Lucide icon name, rarity, category, reward, check).
+2. Add `ach.<id>.title` and `ach.<id>.desc` to `src/i18n/en.ts` and `src/i18n/de.ts`. A test fails if a translation is missing.
+3. Never rename or remove an existing `id`: it is stored in users' progress.
+
+After an update, Vault Quest checks new achievements retroactively against the stored day statistics on the next start, dates them correctly and only adds their reward XP. No re-import is needed.
 
 ## License
 

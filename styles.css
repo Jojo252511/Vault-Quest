@@ -659,3 +659,10 @@ body {
     animation: none;
   }
 }
+
+/* settings */
+.vq-setting-values {
+  margin-top: 6px;
+  color: var(--text-accent);
+  font-variant-numeric: tabular-nums;
+}
