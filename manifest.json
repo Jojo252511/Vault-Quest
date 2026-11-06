@@ -1,0 +1,10 @@
+{
+  "id": "vault-quest",
+  "name": "Vault Quest",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "Gamify your vault: earn XP for writing, level up, unlock achievements and complete daily quests.",
+  "author": "Jojo252511",
+  "authorUrl": "https://github.com/Jojo252511",
+  "isDesktopOnly": false
+}
