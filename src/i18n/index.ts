@@ -39,6 +39,11 @@ export function formatNumber(n: number): string {
   return new Intl.NumberFormat(getLocale()).format(Math.round(n));
 }
 
+/** Like formatNumber, but keeps up to two decimals (e.g. 0.75 XP per word). */
+export function formatDecimal(n: number): string {
+  return new Intl.NumberFormat(getLocale(), { maximumFractionDigits: 2 }).format(n);
+}
+
 export function formatDate(ts: number): string {
   return new Intl.DateTimeFormat(getLocale(), { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(ts));
 }

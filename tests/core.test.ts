@@ -3,9 +3,10 @@ import { levelInfo, xpForLevel } from "../src/core/levels";
 import { analyze, countCompletedTasks, countLinks, countTags, countWords, addDays } from "../src/core/text";
 import { newlyCompleted, pickQuests } from "../src/core/quests";
 import { displayedStreak, markStreakDay } from "../src/core/streak";
-import { importVault, isExcluded, noteDay } from "../src/core/importer";
+import { backfillAchievements, importVault, isExcluded, noteDay, unknownAchievements } from "../src/core/importer";
 import { seal, unseal } from "../src/core/store";
-import { DEFAULT_SETTINGS, emptyDay, emptyProgress, mergeProgress } from "../src/defaults";
+import { emptyDay, emptyProgress, mergeProgress, mergeSettings } from "../src/defaults";
+import { DIFFICULTIES, scaledReward, xpRules } from "../src/core/difficulty";
 import { ACHIEVEMENTS } from "../src/core/achievements";
 import { en } from "../src/i18n/en";
 import { de } from "../src/i18n/de";
@@ -113,7 +114,7 @@ describe("importer", () => {
       { path: "05 Daily/2026-11-02.md", text: "wort ".repeat(60), ctime: 0 },
       { path: "05 Daily/2026-11-03.md", text: "wort ".repeat(600), ctime: 0 },
     ];
-    const r = importVault(p, notes, 2, DEFAULT_SETTINGS.xp, 50, "2026-11-06");
+    const r = importVault(p, notes, 2, xpRules("medium"), 50, "2026-11-06");
     expect(r.notes).toBe(3);
     expect(p.totals.words).toBe(723);
     expect(p.totals.tasks).toBe(1);
@@ -136,8 +137,8 @@ describe("importer", () => {
     const notes = [{ path: "2026-11-01.md", text: "wort ".repeat(1000), ctime: 0 }];
     const full = emptyProgress();
     const part = emptyProgress();
-    importVault(full, notes, 0, DEFAULT_SETTINGS.xp, 50, "2026-11-06", 1);
-    importVault(part, notes, 0, DEFAULT_SETTINGS.xp, 50, "2026-11-06", 0.25);
+    importVault(full, notes, 0, xpRules("medium"), 50, "2026-11-06", 1);
+    importVault(part, notes, 0, xpRules("medium"), 50, "2026-11-06", 0.25);
     expect(part.totals.words).toBe(full.totals.words);
     expect(part.days["2026-11-01"].xp).toBe(Math.round(full.days["2026-11-01"].xp * 0.25));
     expect(part.unlocked.words_day_500).toBeDefined();
@@ -178,5 +179,55 @@ describe("i18n", () => {
         expect(dict[`ach.${a.id}.desc`], a.id).toBeTruthy();
       }
     }
+  });
+});
+
+describe("difficulty", () => {
+  it("gives more XP on easier levels", () => {
+    expect(xpRules("easy").perWord).toBe(2);
+    expect(xpRules("medium").perWord).toBe(1);
+    expect(xpRules("hardcore").perWord).toBe(0.25);
+    expect(scaledReward(100, "veryHard")).toBe(50);
+    const order = ["easy", "medium", "hard", "veryHard", "hardcore"] as const;
+    for (let i = 1; i < order.length; i++) {
+      expect(DIFFICULTIES[order[i]].multiplier).toBeLessThan(DIFFICULTIES[order[i - 1]].multiplier);
+      expect(DIFFICULTIES[order[i]].streakMinWords).toBeGreaterThan(DIFFICULTIES[order[i - 1]].streakMinWords);
+    }
+  });
+  it("migrates v0.1 settings", () => {
+    const s = mergeSettings({ xp: { perWord: 9 }, streakMinWords: 10, importXpPercent: 30, difficulty: "nope" });
+    expect(s.difficulty).toBe("medium");
+    expect(s.importXpPercent).toBe(25);
+    expect((s as unknown as Record<string, unknown>).xp).toBeUndefined();
+  });
+});
+
+describe("achievements added by updates", () => {
+  it("are checked retroactively against stored day stats, with dates", () => {
+    const p = emptyProgress();
+    const notes = [
+      { path: "2026-11-01.md", text: "wort ".repeat(600), ctime: 0 },
+      { path: "2026-11-03.md", text: "wort ".repeat(100), ctime: 0 },
+    ];
+    importVault(p, notes, 0, xpRules("medium"), 50, "2026-11-06");
+    expect(unknownAchievements(p)).toEqual([]);
+
+    // simulate: the stored progress is older and did not know "words_day_500" yet
+    delete p.unlocked.words_day_500;
+    p.knownAchievements = p.knownAchievements!.filter((id) => id !== "words_day_500");
+    const xpBefore = p.xp;
+    expect(unknownAchievements(p)).toEqual(["words_day_500"]);
+
+    const unlocked = backfillAchievements(p, ["words_day_500"], xpRules("medium"), 50, 2, "2026-11-06");
+    expect(unlocked).toEqual(["words_day_500"]);
+    expect(p.unlocked.words_day_500).toBe(new Date(2026, 10, 1, 12).getTime());
+    expect(p.xp).toBe(xpBefore + 25); // only the reward, no XP for the days again
+    expect(unknownAchievements(p)).toEqual([]);
+  });
+
+  it("treats progress without a list (v0.1) as fully evaluated", () => {
+    const p = mergeProgress({ xp: 10 });
+    expect(p.knownAchievements).toBeNull();
+    expect(unknownAchievements(p)).toEqual([]);
   });
 });

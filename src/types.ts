@@ -1,5 +1,7 @@
 export type Language = "auto" | "en" | "de";
 
+export type Difficulty = "easy" | "medium" | "hard" | "veryHard" | "hardcore";
+
 export interface XpRules {
   perWord: number;
   perNote: number;
@@ -8,17 +10,18 @@ export interface XpRules {
   perTask: number;
   /** Upper bound of XP that a single edit burst can award (guards against pastes). */
   maxPerEdit: number;
+  /** Factor for quest and achievement rewards. */
+  rewardFactor: number;
 }
 
 export interface Settings {
   language: Language;
-  xp: XpRules;
+  /** Sets all XP values and the streak threshold, see core/difficulty.ts. */
+  difficulty: Difficulty;
   showStatusBar: boolean;
   showToasts: boolean;
   questsEnabled: boolean;
   questsPerDay: number;
-  /** Words needed on a day to keep the streak alive. */
-  streakMinWords: number;
   /** Share of XP (0-100 %) that existing content earns on the retroactive import. */
   importXpPercent: number;
   /** Folder paths (and their subfolders) that are ignored completely. */
@@ -78,6 +81,11 @@ export interface Progress {
   quests: QuestDay | null;
   /** When existing vault content was imported (ms), null = not yet. */
   importedAt: number | null;
+  /**
+   * Achievement ids that existed when progress was last evaluated. Achievements added by a
+   * plugin update are missing here and get checked retroactively on the next start.
+   */
+  knownAchievements: string[] | null;
 }
 
 /** Shape of data.json: settings in plain text, progress sealed (see core/store.ts). */
