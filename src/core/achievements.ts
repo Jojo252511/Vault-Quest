@@ -44,6 +44,7 @@ export const CATEGORIES: Category[] = [
  * - comeback: writing again after at least `gapDays` days without writing
  * - feature: a Markdown feature (images, code blocks, ...) was added `min` times in total
  * - vault: a fact about the vault's structure (folders, attachments, ...) reaches `min`
+ * - plugin: one of the community plugins `ids` is enabled, and/or at least `min` are enabled
  */
 export type Condition =
   | { type: "total"; stat: keyof Totals; min: number }
@@ -56,7 +57,8 @@ export type Condition =
   | { type: "date"; month?: number; day?: number; weekdays?: number[] }
   | { type: "comeback"; gapDays: number }
   | { type: "feature"; feature: Feature; min: number }
-  | { type: "vault"; stat: VaultStat; min: number };
+  | { type: "vault"; stat: VaultStat; min: number }
+  | { type: "plugin"; ids?: string[]; min?: number };
 
 export interface LocalizedText {
   en: string;
@@ -93,6 +95,8 @@ export interface AchievementContext {
   noteCount: number;
   /** Current vault structure; empty while replaying past days. */
   vault: VaultStats;
+  /** Ids of the enabled community plugins; empty while replaying past days. */
+  plugins: readonly string[];
 }
 
 export function evaluate(cond: Condition, c: AchievementContext): boolean {
@@ -136,6 +140,11 @@ export function evaluate(cond: Condition, c: AchievementContext): boolean {
       return (c.progress.features[cond.feature] ?? 0) >= cond.min;
     case "vault":
       return (c.vault[cond.stat] ?? 0) >= cond.min;
+    case "plugin": {
+      if (cond.ids && !cond.ids.some((id) => c.plugins.includes(id))) return false;
+      if (cond.min !== undefined && c.plugins.length < cond.min) return false;
+      return cond.ids !== undefined || cond.min !== undefined;
+    }
     default:
       return false;
   }
@@ -153,6 +162,7 @@ export function buildContext(
   progress: Progress,
   vault: VaultStats = emptyVaultStats(),
   key: string = dayKey(),
+  plugins: readonly string[] = [],
 ): AchievementContext {
   return {
     progress,
@@ -161,6 +171,7 @@ export function buildContext(
     day: progress.days[key] ?? emptyDay(),
     noteCount: vault.notes,
     vault,
+    plugins,
   };
 }
 

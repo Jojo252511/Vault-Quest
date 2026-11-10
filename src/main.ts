@@ -76,6 +76,8 @@ export default class VaultQuestPlugin extends Plugin {
   private requestVaultRefresh!: Debouncer<[], void>;
   /** Notes created in the last seconds: their first content (e.g. a template) is not counted as written. */
   private fresh = new Map<string, number>();
+  /** Enabled community plugins, refreshed regularly (Obsidian has no event for it). */
+  private enabledPlugins: string[] = [];
 
   async onload(): Promise<void> {
     const tampered = await this.loadAll();
@@ -193,6 +195,7 @@ export default class VaultQuestPlugin extends Plugin {
         undefined,
         this.settings.importXpPercent / 100,
         this.vaultStats,
+        this.enabledPlugins,
       );
       await this.saveAll();
       new Notice(
@@ -219,6 +222,7 @@ export default class VaultQuestPlugin extends Plugin {
       .filter((f) => !this.excluded(f.path) && !(f instanceof TFolder && f.isRoot()))
       .map((f) => ({ path: f.path, isFolder: f instanceof TFolder }));
     this.vaultStats = computeVaultStats(entries);
+    this.enabledPlugins = this.readEnabledPlugins();
     // "have N daily notes" always reflects the vault as it is, which also repairs older counts
     const config = this.dailyNoteConfig();
     if (this.progress) {
@@ -226,6 +230,11 @@ export default class VaultQuestPlugin extends Plugin {
         (e) => !e.isFolder && dailyNoteDate(e.path, config, parseWithMoment) !== null,
       ).length;
     }
+  }
+
+  private readEnabledPlugins(): string[] {
+    const plugins = (this.app as unknown as { plugins?: { enabledPlugins?: Set<string> } }).plugins;
+    return [...(plugins?.enabledPlugins ?? [])].sort();
   }
 
   /** Folder and file name format from Obsidian's core Daily Notes plugin. */
@@ -273,6 +282,7 @@ export default class VaultQuestPlugin extends Plugin {
       this.vaultStats,
       undefined,
       notes,
+      this.enabledPlugins,
     );
     void this.saveAll();
     new Notice(t("backfill.done", { total: ids.length, count: unlocked.length }), 10_000);
@@ -515,7 +525,7 @@ export default class VaultQuestPlugin extends Plugin {
   private checkAchievements(): void {
     // rewards can unlock level achievements, so resolve until stable
     for (let guard = 0; guard < 10; guard++) {
-      const earned = newlyEarned(buildContext(this.progress, this.vaultStats));
+      const earned = newlyEarned(buildContext(this.progress, this.vaultStats, undefined, this.enabledPlugins));
       if (earned.length === 0) break;
       for (const a of earned) {
         const reward = scaledReward(a.reward, this.settings.difficulty);
@@ -538,6 +548,11 @@ export default class VaultQuestPlugin extends Plugin {
     const before = this.progress.quests?.date;
     this.ensureQuests();
     if (before !== this.progress.quests?.date) this.requestSave();
+    const plugins = this.readEnabledPlugins();
+    if (plugins.join() !== this.enabledPlugins.join()) {
+      this.enabledPlugins = plugins;
+      this.afterChange(0, false);
+    }
     this.renderStatus();
   }
 

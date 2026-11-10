@@ -1614,6 +1614,68 @@
       }
     },
     {
+      "id": "claudian",
+      "category": "features",
+      "rarity": "rare",
+      "icon": "bot",
+      "reward": 25,
+      "added": "0.3.1",
+      "condition": {
+        "type": "plugin",
+        "ids": [
+          "realclaudian"
+        ]
+      },
+      "title": {
+        "en": "Let the AI Help You",
+        "de": "Lass die KI dir helfen"
+      },
+      "description": {
+        "en": "Enable the Claudian plugin",
+        "de": "Aktiviere das Plugin Claudian"
+      }
+    },
+    {
+      "id": "plugins_5",
+      "category": "features",
+      "rarity": "common",
+      "icon": "puzzle",
+      "reward": 15,
+      "added": "0.3.1",
+      "condition": {
+        "type": "plugin",
+        "min": 5
+      },
+      "title": {
+        "en": "Extended",
+        "de": "Erweitert"
+      },
+      "description": {
+        "en": "Enable 5 community plugins",
+        "de": "Aktiviere 5 Community-Plugins"
+      }
+    },
+    {
+      "id": "plugins_20",
+      "category": "features",
+      "rarity": "rare",
+      "icon": "blocks",
+      "reward": 50,
+      "added": "0.3.1",
+      "condition": {
+        "type": "plugin",
+        "min": 20
+      },
+      "title": {
+        "en": "Power User",
+        "de": "Power-User"
+      },
+      "description": {
+        "en": "Enable 20 community plugins",
+        "de": "Aktiviere 20 Community-Plugins"
+      }
+    },
+    {
       "id": "level_5",
       "category": "level",
       "rarity": "common",

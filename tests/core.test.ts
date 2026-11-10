@@ -9,7 +9,7 @@ import { emptyDay, emptyProgress, mergeProgress, mergeSettings } from "../src/de
 import { DIFFICULTIES, scaledReward, xpRules } from "../src/core/difficulty";
 import { computeVaultStats, emptyVaultStats, VAULT_STATS } from "../src/core/vault";
 import { countFeatures, FEATURES } from "../src/core/features";
-import { ACHIEVEMENTS, CATEGORIES, RARITIES, evaluate, type AchievementContext, type Condition } from "../src/core/achievements";
+import { ACHIEVEMENTS, CATEGORIES, RARITIES, buildContext, evaluate, type AchievementContext, type Condition } from "../src/core/achievements";
 
 describe("levels", () => {
   it("follows the curve", () => {
@@ -178,7 +178,7 @@ describe("store", () => {
 describe("achievements.json", () => {
   const conditionTypes = [
     "total", "day", "level", "streak", "vaultNotes", "allQuestsToday", "activeDays", "date", "comeback",
-    "feature", "vault",
+    "feature", "vault", "plugin",
   ];
   const totals = Object.keys(emptyProgress().totals);
   const dayStats = Object.keys(emptyDay()).filter((k) => k !== "xp");
@@ -263,7 +263,7 @@ describe("condition types", () => {
   const ctx = (dayKey: string, days: Record<string, number>): AchievementContext => {
     const progress = emptyProgress();
     for (const [k, w] of Object.entries(days)) progress.days[k] = { ...emptyDay(), words: w };
-    return { progress, level: 0, dayKey, day: progress.days[dayKey] ?? emptyDay(), noteCount: 0, vault: emptyVaultStats() };
+    return { progress, level: 0, dayKey, day: progress.days[dayKey] ?? emptyDay(), noteCount: 0, vault: emptyVaultStats(), plugins: [] };
   };
   const ok = (c: Condition, x: AchievementContext) => evaluate(c, x);
 
@@ -439,5 +439,25 @@ describe("daily notes", () => {
       { path: "Archiv/05 Daily Notes/2026-11-01.md", text: "x", ctime: 0, dailyDate: null },
     ], 0, xpRules("medium"), 50, "2026-11-06");
     expect(p.totals.dailyNotes).toBe(1);
+  });
+});
+
+describe("plugin conditions", () => {
+  const ctx = (plugins: string[]): AchievementContext => ({
+    ...buildContext(emptyProgress(), emptyVaultStats(), "2026-11-10", plugins),
+  });
+
+  it("checks enabled community plugins by id and by count", () => {
+    expect(evaluate({ type: "plugin", ids: ["realclaudian"] }, ctx(["realclaudian", "dataview"]))).toBe(true);
+    expect(evaluate({ type: "plugin", ids: ["realclaudian"] }, ctx(["claudian-plus"]))).toBe(false);
+    expect(evaluate({ type: "plugin", min: 2 }, ctx(["a", "b"]))).toBe(true);
+    expect(evaluate({ type: "plugin", min: 3 }, ctx(["a", "b"]))).toBe(false);
+    expect(evaluate({ type: "plugin" }, ctx(["a"]))).toBe(false);
+  });
+
+  it("unlocks the Claudian achievement on import when the plugin is enabled", () => {
+    const p = emptyProgress();
+    importVault(p, [], 0, xpRules("medium"), 50, "2026-11-10", 1, emptyVaultStats(), ["realclaudian"]);
+    expect(p.unlocked.claudian).toBeDefined();
   });
 });
