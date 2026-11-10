@@ -397,7 +397,7 @@ export default class VaultQuestPlugin extends Plugin {
     const files = this.app.vault.getMarkdownFiles().filter((f) => !this.excluded(f.path)).length;
     // rewards can unlock level achievements, so resolve until stable
     for (let guard = 0; guard < 10; guard++) {
-      const earned = newlyEarned(buildContext(this.progress, files, 0));
+      const earned = newlyEarned(buildContext(this.progress, files));
       if (earned.length === 0) break;
       for (const a of earned) {
         const reward = scaledReward(a.reward, this.settings.difficulty);

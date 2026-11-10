@@ -1,6 +1,6 @@
 import type { DayStats, Progress, XpRules } from "../types";
 import { emptyDay, emptyProgress } from "../defaults";
-import { ACHIEVEMENTS, type AchievementContext } from "./achievements";
+import { ACHIEVEMENTS, evaluate, type AchievementContext } from "./achievements";
 import { levelInfo } from "./levels";
 import { markStreakDay } from "./streak";
 import { analyze, dayKey } from "./text";
@@ -105,19 +105,19 @@ export function importVault(
   const sim = emptyProgress();
   const unlockedAt: Record<string, number> = {};
   let noteCount = 0;
-  const check = (dayStats: DayStats, key: string, folders: number) => {
+  const check = (dayStats: DayStats, key: string) => {
     const ctx: AchievementContext = {
       progress: sim,
       level: levelInfo(sim.xp).level,
-      todayWords: dayStats.words,
+      dayKey: key,
+      day: dayStats,
       noteCount,
-      folderCount: folders,
     };
     // loop because achievement rewards can lift the level and unlock level achievements
     for (let guard = 0; guard < 10; guard++) {
       let any = false;
       for (const a of ACHIEVEMENTS) {
-        if (sim.unlocked[a.id] || !a.check(ctx)) continue;
+        if (sim.unlocked[a.id] || !evaluate(a.condition, ctx)) continue;
         sim.unlocked[a.id] = dayTimestamp(key);
         unlockedAt[a.id] = sim.unlocked[a.id];
         sim.xp += Math.round(a.reward * rules.rewardFactor);
@@ -130,6 +130,7 @@ export function importVault(
 
   for (const key of [...days.keys()].sort()) {
     const day = days.get(key)!;
+    sim.days[key] = day;
     sim.xp += day.xp;
     sim.totals.words += day.words;
     sim.totals.notesCreated += day.notes;
@@ -138,11 +139,11 @@ export function importVault(
     sim.totals.tasks += day.tasks;
     noteCount += day.notes;
     if (day.words >= streakMinWords) markStreakDay(sim.streak, key);
-    check(day, key, 0);
+    check(day, key);
   }
   // folders have no reliable date, they count from today
   sim.totals.foldersCreated += folderCount;
-  check(days.get(today) ?? emptyDay(), today, folderCount);
+  check(days.get(today) ?? emptyDay(), today);
 
   // 3. merge into the real progress
   progress.xp += sim.xp;
@@ -205,7 +206,7 @@ export function backfillAchievements(
     let notes = 0;
     const check = (ctx: AchievementContext, ts: number) => {
       for (const a of targets) {
-        if (progress.unlocked[a.id] || !a.check(ctx)) continue;
+        if (progress.unlocked[a.id] || !evaluate(a.condition, ctx)) continue;
         progress.unlocked[a.id] = ts;
         progress.xp += Math.round(a.reward * rules.rewardFactor);
         unlocked.push(a.id);
@@ -215,6 +216,7 @@ export function backfillAchievements(
     for (const key of Object.keys(progress.days).sort()) {
       if (key > today) continue;
       const day = progress.days[key];
+      sim.days[key] = day;
       sim.xp += day.xp;
       sim.totals.words += day.words;
       sim.totals.notesCreated += day.notes;
@@ -223,19 +225,16 @@ export function backfillAchievements(
       sim.totals.tasks += day.tasks;
       notes += day.notes;
       if (day.words >= streakMinWords) markStreakDay(sim.streak, key);
-      check(
-        { progress: sim, level: levelInfo(sim.xp).level, todayWords: day.words, noteCount: notes, folderCount: 0 },
-        dayTimestamp(key),
-      );
+      check({ progress: sim, level: levelInfo(sim.xp).level, dayKey: key, day, noteCount: notes }, dayTimestamp(key));
     }
     // everything without history, against the real current state
     check(
       {
         progress,
         level: levelInfo(progress.xp).level,
-        todayWords: progress.days[today]?.words ?? 0,
+        dayKey: today,
+        day: progress.days[today] ?? emptyDay(),
         noteCount,
-        folderCount: progress.totals.foldersCreated,
       },
       Date.now(),
     );

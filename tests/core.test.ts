@@ -7,9 +7,7 @@ import { backfillAchievements, importVault, isExcluded, noteDay, unknownAchievem
 import { seal, unseal } from "../src/core/store";
 import { emptyDay, emptyProgress, mergeProgress, mergeSettings } from "../src/defaults";
 import { DIFFICULTIES, scaledReward, xpRules } from "../src/core/difficulty";
-import { ACHIEVEMENTS } from "../src/core/achievements";
-import { en } from "../src/i18n/en";
-import { de } from "../src/i18n/de";
+import { ACHIEVEMENTS, CATEGORIES, RARITIES } from "../src/core/achievements";
 
 describe("levels", () => {
   it("follows the curve", () => {
@@ -171,14 +169,32 @@ describe("store", () => {
   });
 });
 
-describe("i18n", () => {
-  it("has a title and description for every achievement in both languages", () => {
-    for (const a of ACHIEVEMENTS) {
-      for (const dict of [en, de] as Record<string, string>[]) {
-        expect(dict[`ach.${a.id}.title`], a.id).toBeTruthy();
-        expect(dict[`ach.${a.id}.desc`], a.id).toBeTruthy();
-      }
+describe("achievements.json", () => {
+  const conditionTypes = ["total", "day", "level", "streak", "vaultNotes", "allQuestsToday"];
+  const totals = Object.keys(emptyProgress().totals);
+  const dayStats = Object.keys(emptyDay()).filter((k) => k !== "xp");
+
+  it("has unique ids", () => {
+    const ids = ACHIEVEMENTS.map((a) => a.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it.each(ACHIEVEMENTS.map((a) => [a.id, a] as const))("%s is complete and valid", (_id, a) => {
+    expect(a.id).toMatch(/^[a-z0-9_]+$/);
+    expect(CATEGORIES).toContain(a.category);
+    expect(RARITIES).toContain(a.rarity);
+    expect(a.icon).toMatch(/^[a-z0-9-]+$/);
+    expect(a.reward).toBeGreaterThanOrEqual(0);
+    expect(a.added).toMatch(/^\d+\.\d+\.\d+$/);
+    for (const text of [a.title, a.description]) {
+      expect(text.en.trim()).not.toBe("");
+      expect(text.de.trim()).not.toBe("");
     }
+    const c = a.condition as unknown as Record<string, unknown>;
+    expect(conditionTypes).toContain(c.type);
+    if (c.type === "total") expect(totals).toContain(c.stat);
+    if (c.type === "day") expect(dayStats).toContain(c.stat);
+    if ("min" in c) expect(typeof c.min).toBe("number");
   });
 });
 

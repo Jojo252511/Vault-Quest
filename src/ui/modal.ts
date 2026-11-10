@@ -1,11 +1,11 @@
 import { App, Modal, setIcon } from "obsidian";
-import { ACHIEVEMENTS, RARITY_ORDER, type Achievement, type Category } from "../core/achievements";
+import { ACHIEVEMENTS, CATEGORIES, RARITIES, type Achievement } from "../core/achievements";
 import { scaledReward, streakMinWords } from "../core/difficulty";
 import { levelInfo } from "../core/levels";
 import { questById, questValue, type QuestDef } from "../core/quests";
 import { displayedStreak } from "../core/streak";
 import { addDays, dayKey } from "../core/text";
-import { formatDate, formatNumber, t, type TranslationKey } from "../i18n";
+import { formatDate, formatNumber, t, type TranslationKey, localized } from "../i18n";
 import type { Progress, Settings } from "../types";
 
 export type Tab = "achievements" | "quests" | "stats";
@@ -19,7 +19,6 @@ export interface QuestHost {
   ensureQuests(): void;
 }
 
-const CATEGORIES: Category[] = ["writing", "structure", "tasks", "level", "streak", "special"];
 
 export function questLabel(q: QuestDef): string {
   if (q.metric === "notes" && q.target === 1) return t("quest.notes.one");
@@ -27,11 +26,11 @@ export function questLabel(q: QuestDef): string {
 }
 
 export function achievementTitle(a: Achievement): string {
-  return t(`ach.${a.id}.title` as TranslationKey);
+  return localized(a.title);
 }
 
 export function achievementDesc(a: Achievement): string {
-  return t(`ach.${a.id}.desc` as TranslationKey);
+  return localized(a.description);
 }
 
 export class QuestModal extends Modal {
@@ -129,7 +128,7 @@ export class QuestModal extends Modal {
     for (const cat of CATEGORIES) {
       const list = ACHIEVEMENTS.filter((a) => a.category === cat)
         .filter((a) => this.filter === "all" || (this.filter === "unlocked") === !!unlocked[a.id])
-        .sort((a, b) => RARITY_ORDER.indexOf(a.rarity) - RARITY_ORDER.indexOf(b.rarity));
+        .sort((a, b) => RARITIES.indexOf(a.rarity) - RARITIES.indexOf(b.rarity));
       if (list.length === 0) continue;
       const done = ACHIEVEMENTS.filter((a) => a.category === cat && unlocked[a.id]).length;
       const total = ACHIEVEMENTS.filter((a) => a.category === cat).length;

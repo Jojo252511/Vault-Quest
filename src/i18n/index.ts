@@ -22,6 +22,16 @@ export function setLanguage(lang: Language): void {
   current = resolved.toLowerCase().startsWith("de") ? "de" : "en";
 }
 
+/** Active interface language. */
+export function getLanguage(): "en" | "de" {
+  return current;
+}
+
+/** Picks the text for the active language from an inline translation (e.g. achievements.json). */
+export function localized(text: { en: string; de: string }): string {
+  return text[current] || text.en;
+}
+
 export function getLocale(): string {
   return current === "de" ? "de-DE" : "en-US";
 }
