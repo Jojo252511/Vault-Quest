@@ -33,7 +33,11 @@ export const de: Record<TranslationKey, string> = {
   "category.tasks": "Aufgaben",
   "category.level": "Level",
   "category.streak": "Streaks",
-  "category.special": "Besonderes",
+  "category.time": "Zeit und Kalender",
+  "category.quests": "Quests",
+  "modal.secret.title": "???",
+  "modal.secret.desc": "Geheimer Erfolg, wird beim Freischalten enthüllt",
+  "category.special": "Geheim",
 
   // quests
   "quests.title": "Heutige Quests",

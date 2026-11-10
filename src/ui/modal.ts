@@ -143,14 +143,16 @@ export class QuestModal extends Modal {
   private renderCard(parent: HTMLElement, a: Achievement, unlockedAt: number | undefined): void {
     const card = parent.createDiv({ cls: `vq-card vq-rarity-${a.rarity}` });
     if (!unlockedAt) card.addClass("is-locked");
+    const hidden = !!a.secret && !unlockedAt;
+    if (hidden) card.addClass("is-secret");
     const icon = card.createDiv({ cls: "vq-card-icon" });
-    setIcon(icon, unlockedAt ? a.icon : "lock");
+    setIcon(icon, unlockedAt ? a.icon : hidden ? "eye-off" : "lock");
     const body = card.createDiv({ cls: "vq-card-body" });
     const top = body.createDiv({ cls: "vq-card-top" });
-    top.createDiv({ cls: "vq-card-title", text: achievementTitle(a) });
+    top.createDiv({ cls: "vq-card-title", text: hidden ? t("modal.secret.title") : achievementTitle(a) });
     const reward = scaledReward(a.reward, this.host.settings.difficulty);
     if (reward > 0) top.createDiv({ cls: "vq-card-reward", text: t("modal.reward", { xp: reward }) });
-    body.createDiv({ cls: "vq-card-desc", text: achievementDesc(a) });
+    body.createDiv({ cls: "vq-card-desc", text: hidden ? t("modal.secret.desc") : achievementDesc(a) });
     const meta = body.createDiv({ cls: "vq-card-meta" });
     const left = meta.createDiv({ cls: "vq-card-meta-left" });
     left.createSpan({ cls: "vq-rarity-pill", text: t(`rarity.${a.rarity}` as TranslationKey) });
@@ -225,7 +227,7 @@ export class QuestModal extends Modal {
     tile("file-text", "stats.notes", formatNumber(tot.notesCreated));
     tile("link", "stats.links", formatNumber(tot.links));
     tile("tag", "stats.tags", formatNumber(tot.tags));
-    tile("check-square", "stats.tasks", formatNumber(tot.tasks));
+    tile("clipboard-check", "stats.tasks", formatNumber(tot.tasks));
     tile("target", "stats.quests", formatNumber(tot.questsCompleted));
 
     const head = this.bodyEl.createDiv({ cls: "vq-section-head" });

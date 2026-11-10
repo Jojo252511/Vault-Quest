@@ -666,3 +666,11 @@ body {
   color: var(--text-accent);
   font-variant-numeric: tabular-nums;
 }
+
+.vq-card.is-secret .vq-card-title {
+  letter-spacing: 0.2em;
+}
+
+.vq-card.is-secret .vq-card-desc {
+  font-style: italic;
+}

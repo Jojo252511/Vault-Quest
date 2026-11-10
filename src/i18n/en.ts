@@ -31,7 +31,11 @@ export const en = {
   "category.tasks": "Tasks",
   "category.level": "Level",
   "category.streak": "Streaks",
-  "category.special": "Special",
+  "category.time": "Time and calendar",
+  "category.quests": "Quests",
+  "modal.secret.title": "???",
+  "modal.secret.desc": "Secret achievement, revealed when unlocked",
+  "category.special": "Secret",
 
   // quests
   "quests.title": "Today's quests",

@@ -24,7 +24,7 @@ import { newlyCompleted, pickQuests } from "./core/quests";
 import { Sounds } from "./core/sounds";
 import { seal, unseal } from "./core/store";
 import { displayedStreak, markStreakDay } from "./core/streak";
-import { analyze, dayKey } from "./core/text";
+import { analyze, dayKey, isDailyNotePath } from "./core/text";
 import { emptyDay, emptyProgress, mergeProgress, mergeSettings } from "./defaults";
 import { formatNumber, setLanguage, t } from "./i18n";
 import type { DayStats, NoteCounts, Progress, Settings, StoredData } from "./types";
@@ -73,7 +73,7 @@ export default class VaultQuestPlugin extends Plugin {
     this.app.workspace.onLayoutReady(async () => {
       if (tampered) new Notice(t("import.tampered"), 10_000);
       if (!this.progress.importedAt) await this.runImport();
-      this.backfillNewAchievements();
+      await this.backfillNewAchievements();
       this.ensureQuests();
       this.seedOpenNotes();
       this.ready = true;
@@ -140,13 +140,7 @@ export default class VaultQuestPlugin extends Plugin {
     this.importing = true;
     const notice = new Notice(t("import.running"), 0);
     try {
-      const files = this.app.vault
-        .getMarkdownFiles()
-        .filter((f) => !isExcluded(f.path, this.settings.excludedFolders));
-      const notes: ScannedNote[] = [];
-      for (const file of files) {
-        notes.push({ path: file.path, text: await this.app.vault.cachedRead(file), ctime: file.stat.ctime });
-      }
+      const notes = await this.scanNotes();
       const folders = this.app.vault
         .getAllLoadedFiles()
         .filter((f) => f instanceof TFolder && !f.isRoot() && !isExcluded(f.path, this.settings.excludedFolders)).length;
@@ -178,17 +172,29 @@ export default class VaultQuestPlugin extends Plugin {
   }
 
   /** Achievements added by a plugin update are checked retroactively against the stored statistics. */
-  private backfillNewAchievements(): void {
+  /** Reads every non-excluded note of the vault. */
+  private async scanNotes(): Promise<ScannedNote[]> {
+    const notes: ScannedNote[] = [];
+    for (const file of this.app.vault.getMarkdownFiles()) {
+      if (this.excluded(file.path)) continue;
+      notes.push({ path: file.path, text: await this.app.vault.cachedRead(file), ctime: file.stat.ctime });
+    }
+    return notes;
+  }
+
+  private async backfillNewAchievements(): Promise<void> {
     // progress from v0.1 has no list yet; everything that existed then was already evaluated
     this.progress.knownAchievements ??= ACHIEVEMENTS.map((a) => a.id);
     const ids = unknownAchievements(this.progress);
     if (ids.length === 0) return;
-    const notes = this.app.vault.getMarkdownFiles().filter((f) => !this.excluded(f.path)).length;
+    const notes = await this.scanNotes();
     const unlocked = backfillAchievements(
       this.progress,
       ids,
       xpRules(this.settings.difficulty),
       streakMinWords(this.settings.difficulty),
+      notes.length,
+      undefined,
       notes,
     );
     void this.saveAll();
@@ -273,6 +279,7 @@ export default class VaultQuestPlugin extends Plugin {
     }
     if (!(file instanceof TFile) || file.extension !== "md" || this.excluded(file.path)) return;
     this.seen.set(file.path, { words: 0, links: 0, tags: 0, tasks: 0 });
+    if (isDailyNotePath(file.path)) this.progress.totals.dailyNotes++;
     this.award({ notes: 1 });
   }
 
@@ -284,6 +291,9 @@ export default class VaultQuestPlugin extends Plugin {
       return;
     }
     this.seen.set(path, maxCounts(prev, now));
+    const tot = this.progress.totals;
+    tot.longestNote = Math.max(tot.longestNote, now.words);
+    tot.maxLinksInNote = Math.max(tot.maxLinksInNote, now.links);
     const gain: Gain = {
       words: Math.max(0, now.words - prev.words),
       links: Math.max(0, now.links - prev.links),
@@ -379,6 +389,7 @@ export default class VaultQuestPlugin extends Plugin {
     for (const q of newlyCompleted(quests, this.progress.days[dayKey()])) {
       quests.completed.push(q.id);
       this.progress.totals.questsCompleted++;
+      if (quests.completed.length === quests.ids.length) this.progress.totals.questDays++;
       const reward = scaledReward(q.reward, this.settings.difficulty);
       this.progress.xp += reward;
       this.today().xp += reward;

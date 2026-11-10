@@ -5,10 +5,10 @@ import { levelInfo } from "./levels";
 import { dayKey } from "./text";
 
 export type Rarity = "common" | "rare" | "epic" | "legendary";
-export type Category = "writing" | "structure" | "tasks" | "level" | "streak" | "special";
+export type Category = "writing" | "structure" | "tasks" | "level" | "streak" | "time" | "quests" | "special";
 
 export const RARITIES: Rarity[] = ["common", "rare", "epic", "legendary"];
-export const CATEGORIES: Category[] = ["writing", "structure", "tasks", "level", "streak", "special"];
+export const CATEGORIES: Category[] = ["writing", "structure", "tasks", "level", "streak", "time", "quests", "special"];
 
 /**
  * Declarative unlock condition, as written in src/data/achievements.json.
@@ -17,6 +17,10 @@ export const CATEGORIES: Category[] = ["writing", "structure", "tasks", "level",
  * - level / streak: current level / best streak reaches `min`
  * - vaultNotes: number of notes currently in the vault reaches `min`
  * - allQuestsToday: every daily quest of the day is done
+ * - activeDays: number of days with at least one written word reaches `min`
+ * - date: words written on a matching calendar day; `month` (1-12), `day` (1-31) and
+ *   `weekdays` (0 = Sunday ... 6 = Saturday) are optional and combined with AND
+ * - comeback: writing again after at least `gapDays` days without writing
  */
 export type Condition =
   | { type: "total"; stat: keyof Totals; min: number }
@@ -24,7 +28,10 @@ export type Condition =
   | { type: "level"; min: number }
   | { type: "streak"; min: number }
   | { type: "vaultNotes"; min: number }
-  | { type: "allQuestsToday" };
+  | { type: "allQuestsToday" }
+  | { type: "activeDays"; min: number }
+  | { type: "date"; month?: number; day?: number; weekdays?: number[] }
+  | { type: "comeback"; gapDays: number };
 
 export interface LocalizedText {
   en: string;
@@ -43,6 +50,8 @@ export interface Achievement {
   /** Plugin version that introduced the achievement. */
   added: string;
   condition: Condition;
+  /** Secret achievements show "???" until they are unlocked. */
+  secret?: boolean;
   title: LocalizedText;
   description: LocalizedText;
 }
@@ -75,9 +84,38 @@ export function evaluate(cond: Condition, c: AchievementContext): boolean {
       const q = c.progress.quests;
       return !!q && q.date === c.dayKey && q.ids.length > 0 && q.completed.length >= q.ids.length;
     }
+    case "activeDays": {
+      let n = 0;
+      for (const [key, d] of Object.entries(c.progress.days)) if (key <= c.dayKey && d.words > 0) n++;
+      return n >= cond.min;
+    }
+    case "date": {
+      if (c.day.words <= 0) return false;
+      const [y, m, d] = c.dayKey.split("-").map(Number);
+      if (cond.month !== undefined && cond.month !== m) return false;
+      if (cond.day !== undefined && cond.day !== d) return false;
+      if (cond.weekdays && !cond.weekdays.includes(new Date(y, m - 1, d).getDay())) return false;
+      return true;
+    }
+    case "comeback": {
+      if (c.day.words <= 0) return false;
+      let previous: string | null = null;
+      for (const [key, d] of Object.entries(c.progress.days)) {
+        if (key < c.dayKey && d.words > 0 && (!previous || key > previous)) previous = key;
+      }
+      return previous !== null && daysBetween(previous, c.dayKey) >= cond.gapDays;
+    }
     default:
       return false;
   }
+}
+
+function daysBetween(a: string, b: string): number {
+  const toUtc = (k: string) => {
+    const [y, m, d] = k.split("-").map(Number);
+    return Date.UTC(y, m - 1, d);
+  };
+  return Math.round((toUtc(b) - toUtc(a)) / 86_400_000);
 }
 
 export function buildContext(progress: Progress, noteCount: number, key: string = dayKey()): AchievementContext {
