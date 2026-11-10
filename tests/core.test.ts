@@ -7,6 +7,8 @@ import { backfillAchievements, importVault, isExcluded, noteDay, unknownAchievem
 import { seal, unseal } from "../src/core/store";
 import { emptyDay, emptyProgress, mergeProgress, mergeSettings } from "../src/defaults";
 import { DIFFICULTIES, scaledReward, xpRules } from "../src/core/difficulty";
+import { computeVaultStats, emptyVaultStats, VAULT_STATS } from "../src/core/vault";
+import { countFeatures, FEATURES } from "../src/core/features";
 import { ACHIEVEMENTS, CATEGORIES, RARITIES, evaluate, type AchievementContext, type Condition } from "../src/core/achievements";
 
 describe("levels", () => {
@@ -172,6 +174,7 @@ describe("store", () => {
 describe("achievements.json", () => {
   const conditionTypes = [
     "total", "day", "level", "streak", "vaultNotes", "allQuestsToday", "activeDays", "date", "comeback",
+    "feature", "vault",
   ];
   const totals = Object.keys(emptyProgress().totals);
   const dayStats = Object.keys(emptyDay()).filter((k) => k !== "xp");
@@ -196,6 +199,8 @@ describe("achievements.json", () => {
     expect(conditionTypes).toContain(c.type);
     if (c.type === "total") expect(totals).toContain(c.stat);
     if (c.type === "day") expect(dayStats).toContain(c.stat);
+    if (c.type === "feature") expect(FEATURES).toContain(c.feature);
+    if (c.type === "vault") expect(VAULT_STATS).toContain(c.stat);
     if ("min" in c) expect(typeof c.min).toBe("number");
   });
 });
@@ -236,7 +241,7 @@ describe("achievements added by updates", () => {
     const xpBefore = p.xp;
     expect(unknownAchievements(p)).toEqual(["words_day_500"]);
 
-    const unlocked = backfillAchievements(p, ["words_day_500"], xpRules("medium"), 50, 2, "2026-11-06");
+    const unlocked = backfillAchievements(p, ["words_day_500"], xpRules("medium"), 50, { ...emptyVaultStats(), notes: 2 }, "2026-11-06");
     expect(unlocked).toEqual(["words_day_500"]);
     expect(p.unlocked.words_day_500).toBe(new Date(2026, 10, 1, 12).getTime());
     expect(p.xp).toBe(xpBefore + 25); // only the reward, no XP for the days again
@@ -254,7 +259,7 @@ describe("condition types", () => {
   const ctx = (dayKey: string, days: Record<string, number>): AchievementContext => {
     const progress = emptyProgress();
     for (const [k, w] of Object.entries(days)) progress.days[k] = { ...emptyDay(), words: w };
-    return { progress, level: 0, dayKey, day: progress.days[dayKey] ?? emptyDay(), noteCount: 0 };
+    return { progress, level: 0, dayKey, day: progress.days[dayKey] ?? emptyDay(), noteCount: 0, vault: emptyVaultStats() };
   };
   const ok = (c: Condition, x: AchievementContext) => evaluate(c, x);
 
@@ -307,8 +312,91 @@ describe("per-note stats", () => {
     p.totals.longestNote = 0;
     delete p.unlocked.long_note_2000;
     p.knownAchievements = p.knownAchievements!.filter((id) => id !== "long_note_2000");
-    backfillAchievements(p, unknownAchievements(p), xpRules("medium"), 50, 1, "2026-11-06", notes);
+    backfillAchievements(p, unknownAchievements(p), xpRules("medium"), 50, { ...emptyVaultStats(), notes: 1 }, "2026-11-06", notes);
     expect(p.totals.longestNote).toBe(2100);
     expect(p.unlocked.long_note_2000).toBe(new Date(2026, 10, 2, 12).getTime());
+  });
+});
+
+describe("markdown features", () => {
+  it("detects embeds, blocks and formatting", () => {
+    const f = countFeatures(
+      [
+        "---",
+        "tags: [a/b]",
+        "status: x",
+        "---",
+        "## Heading",
+        "![[pic.png]] ![x](img.jpg) ![[doc.pdf]] ![[Other note]] ![[song.mp3]]",
+        "> [!tip] Callout",
+        "| a | b |",
+        "| --- | --- |",
+        "$$ x $$ text[^1] ==mark== ~~old~~ [[Note#Part]] https://example.com",
+        "%% hidden %%",
+        "- [ ] open",
+        "```mermaid",
+        "graph TD",
+        "```",
+        "```dataview",
+        "LIST",
+        "```",
+        "```js",
+        'const s = "![[not-an-image.png]] ## no heading";',
+        "```",
+        "[^1]: note",
+      ].join("\n"),
+    );
+    expect(f).toMatchObject({
+      images: 2, pdfEmbeds: 1, noteEmbeds: 1, mediaEmbeds: 1, codeBlocks: 3, mermaid: 1, dataview: 1,
+      callouts: 1, tables: 1, math: 1, footnotes: 1, headings: 1, highlights: 1, strikethrough: 1,
+      deepLinks: 1, externalLinks: 1, comments: 1, openTasks: 1, properties: 2, nestedTags: 1,
+    });
+  });
+
+  it("does not count embeds as written words", () => {
+    expect(countWords("Look ![[Pasted image 20261110.png]] here")).toBe(2);
+  });
+
+  it("counts features on import and dates the first use", () => {
+    const p = emptyProgress();
+    importVault(p, [
+      { path: "2026-11-01.md", text: "Text", ctime: 0 },
+      { path: "2026-11-04.md", text: "![[a.png]]\n```js\nx\n```", ctime: 0 },
+    ], 0, xpRules("medium"), 50, "2026-11-06");
+    expect(p.features.images).toBe(1);
+    expect(p.features.codeBlocks).toBe(1);
+    expect(p.unlocked.first_image).toBe(new Date(2026, 10, 4, 12).getTime());
+    expect(p.unlocked.first_code_block).toBe(new Date(2026, 10, 4, 12).getTime());
+  });
+});
+
+describe("vault structure", () => {
+  it("computes subfolders, depth, notes per folder and file types", () => {
+    const s = computeVaultStats([
+      { path: "A", isFolder: true },
+      { path: "A/B", isFolder: true },
+      { path: "A/C", isFolder: true },
+      { path: "A/D", isFolder: true },
+      { path: "A/B/E", isFolder: true },
+      { path: "A/one.md", isFolder: false },
+      { path: "A/two.md", isFolder: false },
+      { path: "root.md", isFolder: false },
+      { path: "A/B/pic.png", isFolder: false },
+      { path: "A/doc.pdf", isFolder: false },
+      { path: "Board.canvas", isFolder: false },
+      { path: "Data.base", isFolder: false },
+      { path: "A/Sketch.excalidraw.md", isFolder: false },
+    ]);
+    expect(s).toMatchObject({
+      folders: 5, maxSubfolders: 3, maxFolderDepth: 3, maxNotesInFolder: 3, notes: 4,
+      attachments: 2, images: 1, pdfs: 1, canvases: 1, bases: 1, drawings: 1,
+    });
+  });
+
+  it("unlocks structure achievements on import from the current vault", () => {
+    const p = emptyProgress();
+    const vault = { ...emptyVaultStats(), notes: 1, folders: 4, maxSubfolders: 3 };
+    importVault(p, [{ path: "a.md", text: "x", ctime: 0 }], 4, xpRules("medium"), 50, "2026-11-06", 1, vault);
+    expect(p.unlocked.subfolders_3).toBeDefined();
   });
 });

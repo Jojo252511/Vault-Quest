@@ -31,6 +31,7 @@ export const de: Record<TranslationKey, string> = {
   "category.writing": "Schreiben",
   "category.structure": "Struktur",
   "category.tasks": "Aufgaben",
+  "category.features": "Markdown und Obsidian",
   "category.level": "Level",
   "category.streak": "Streaks",
   "category.time": "Zeit und Kalender",

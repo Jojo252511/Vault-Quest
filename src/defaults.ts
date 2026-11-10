@@ -49,6 +49,7 @@ export function emptyProgress(): Progress {
     quests: null,
     importedAt: null,
     knownAchievements: null,
+    features: {},
   };
 }
 
@@ -83,5 +84,6 @@ export function mergeProgress(raw: unknown): Progress {
     quests: p.quests ?? null,
     importedAt: p.importedAt ?? null,
     knownAchievements: Array.isArray(p.knownAchievements) ? p.knownAchievements : null,
+    features: p.features && typeof p.features === "object" ? p.features : {},
   };
 }
