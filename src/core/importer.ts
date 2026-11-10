@@ -129,6 +129,7 @@ export function importVault(
   today: string = dayKey(),
   xpFactor = 1,
   vault: VaultStats = emptyVaultStats(),
+  plugins: readonly string[] = [],
 ): ImportResult {
   const levelBefore = levelInfo(progress.xp).level;
 
@@ -155,7 +156,12 @@ export function importVault(
   const sim = emptyProgress();
   const unlockedAt: Record<string, number> = {};
   let noteCount = 0;
-  const check = (dayStats: DayStats, key: string, vaultNow: VaultStats = emptyVaultStats()) => {
+  const check = (
+    dayStats: DayStats,
+    key: string,
+    vaultNow: VaultStats = emptyVaultStats(),
+    pluginsNow: readonly string[] = [],
+  ) => {
     const ctx: AchievementContext = {
       progress: sim,
       level: levelInfo(sim.xp).level,
@@ -163,6 +169,7 @@ export function importVault(
       day: dayStats,
       noteCount,
       vault: vaultNow,
+      plugins: pluginsNow,
     };
     // loop because achievement rewards can lift the level and unlock level achievements
     for (let guard = 0; guard < 10; guard++) {
@@ -195,7 +202,7 @@ export function importVault(
   }
   // folders have no reliable date, they count from today
   sim.totals.foldersCreated += folderCount;
-  check(days.get(today) ?? emptyDay(), today, vault);
+  check(days.get(today) ?? emptyDay(), today, vault, plugins);
 
   // 3. merge into the real progress
   progress.xp += sim.xp;
@@ -256,6 +263,7 @@ export function backfillAchievements(
   vault: VaultStats,
   today: string = dayKey(),
   notes?: ScannedNote[],
+  plugins: readonly string[] = [],
 ): string[] {
   const meta = notes ? collectNoteMeta(notes, today) : new Map<string, DayMeta>();
   if (notes) {
@@ -299,7 +307,7 @@ export function backfillAchievements(
       notes += day.notes;
       if (day.words >= streakMinWords) markStreakDay(sim.streak, key);
       check(
-        { progress: sim, level: levelInfo(sim.xp).level, dayKey: key, day, noteCount: notes, vault: emptyVaultStats() },
+        { progress: sim, level: levelInfo(sim.xp).level, dayKey: key, day, noteCount: notes, vault: emptyVaultStats(), plugins: [] },
         dayTimestamp(key),
       );
     }
@@ -312,6 +320,7 @@ export function backfillAchievements(
         day: progress.days[today] ?? emptyDay(),
         noteCount: vault.notes,
         vault,
+        plugins,
       },
       Date.now(),
     );

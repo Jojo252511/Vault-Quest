@@ -7,7 +7,7 @@ Interface in English and German (follows Obsidian's language or can be set manua
 ## Features
 
 - **XP and levels:** every new word, note, link, tag and completed task earns XP. Your level and XP bar sit in the status bar at the bottom. Hover for details, click to open the achievements.
-- **Achievements:** 113 achievements in nine categories (writing, structure, tasks, Markdown and Obsidian features, level, streaks, time and calendar, quests, secret) with four rarities, defined in a JSON file. Each unlock shows a notification and grants bonus XP.
+- **Achievements:** 116 achievements in nine categories (writing, structure, tasks, Markdown and Obsidian features, level, streaks, time and calendar, quests, secret) with four rarities, defined in a JSON file. Each unlock shows a notification and grants bonus XP.
 - **Retroactive import:** on first start, Vault Quest scans your existing notes and unlocks everything you have already earned. Each note is dated by its daily note date, its `date`/`created` frontmatter, a `YYYY-MM-DD` date in the file name, or its creation time, so achievements, streaks and statistics get real dates. Dates in the future (notes prepared in advance) are skipped.
 - **Daily notes** are recognised with the folder and date format of Obsidian's Daily Notes settings; copies elsewhere in the vault don't count. Content a template inserts into a new note is not counted as written.
 - **Daily quests:** three new quests every day (e.g. "Write 500 words", "Complete 3 tasks"). They only count what you do after they were issued.
@@ -121,6 +121,7 @@ Condition types:
 | `allQuestsToday` | | all daily quests of a day are done |
 | `feature` | `feature`, `min` | a Markdown feature was added `min` times in total. `feature`: `images`, `codeBlocks`, `mermaid`, `dataview`, `callouts`, `tables`, `math`, `footnotes`, `noteEmbeds`, `pdfEmbeds`, `mediaEmbeds`, `headings`, `highlights`, `strikethrough`, `deepLinks` (links to headings/blocks), `externalLinks`, `comments` (`%%`), `properties`, `openTasks`, `nestedTags` |
 | `vault` | `stat`, `min` | the vault structure reaches `min`. `stat`: `notes`, `folders`, `maxSubfolders` (folders inside one folder), `maxFolderDepth`, `maxNotesInFolder`, `attachments`, `images`, `pdfs`, `canvases`, `bases`, `drawings` (Excalidraw) |
+| `plugin` | `ids` and/or `min` | one of the community plugins `ids` is enabled (e.g. `["realclaudian"]`), and/or at least `min` community plugins are enabled. Plugin ids are listed in [community-plugins.json](https://github.com/obsidianmd/obsidian-releases/blob/master/community-plugins.json) |
 
 Rules: never rename or remove an existing `id` (it is stored in users' progress), and set `added` to the version that ships the achievement. `npm test` validates every entry.
 
