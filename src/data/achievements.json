@@ -1,0 +1,1584 @@
+{
+  "version": 1,
+  "achievements": [
+    {
+      "id": "first_words",
+      "category": "writing",
+      "rarity": "common",
+      "icon": "pencil",
+      "reward": 10,
+      "added": "0.1.0",
+      "condition": {
+        "type": "total",
+        "stat": "words",
+        "min": 1
+      },
+      "title": {
+        "en": "First Words",
+        "de": "Erste Worte"
+      },
+      "description": {
+        "en": "Write your first words",
+        "de": "Schreibe deine ersten Wörter"
+      }
+    },
+    {
+      "id": "words_day_500",
+      "category": "writing",
+      "rarity": "common",
+      "icon": "pen-line",
+      "reward": 25,
+      "added": "0.1.0",
+      "condition": {
+        "type": "day",
+        "stat": "words",
+        "min": 500
+      },
+      "title": {
+        "en": "Warmed Up",
+        "de": "Warmgeschrieben"
+      },
+      "description": {
+        "en": "Write 500 words in one day",
+        "de": "Schreibe 500 Wörter an einem Tag"
+      }
+    },
+    {
+      "id": "words_day_2000",
+      "category": "writing",
+      "rarity": "rare",
+      "icon": "flame",
+      "reward": 100,
+      "added": "0.1.0",
+      "condition": {
+        "type": "day",
+        "stat": "words",
+        "min": 2000
+      },
+      "title": {
+        "en": "In the Zone",
+        "de": "Im Flow"
+      },
+      "description": {
+        "en": "Write 2,000 words in one day",
+        "de": "Schreibe 2.000 Wörter an einem Tag"
+      }
+    },
+    {
+      "id": "words_10k",
+      "category": "writing",
+      "rarity": "rare",
+      "icon": "scroll-text",
+      "reward": 100,
+      "added": "0.1.0",
+      "condition": {
+        "type": "total",
+        "stat": "words",
+        "min": 10000
+      },
+      "title": {
+        "en": "Wordsmith",
+        "de": "Wortschmied"
+      },
+      "description": {
+        "en": "Write 10,000 words in total",
+        "de": "Schreibe insgesamt 10.000 Wörter"
+      }
+    },
+    {
+      "id": "words_100k",
+      "category": "writing",
+      "rarity": "legendary",
+      "icon": "library",
+      "reward": 1000,
+      "added": "0.1.0",
+      "condition": {
+        "type": "total",
+        "stat": "words",
+        "min": 100000
+      },
+      "title": {
+        "en": "Novelist",
+        "de": "Romanautor"
+      },
+      "description": {
+        "en": "Write 100,000 words in total",
+        "de": "Schreibe insgesamt 100.000 Wörter"
+      }
+    },
+    {
+      "id": "words_1k",
+      "category": "writing",
+      "rarity": "common",
+      "icon": "feather",
+      "reward": 15,
+      "added": "0.2.0",
+      "condition": {
+        "type": "total",
+        "stat": "words",
+        "min": 1000
+      },
+      "title": {
+        "en": "Getting Started",
+        "de": "Ins Rollen gekommen"
+      },
+      "description": {
+        "en": "Write 1,000 words in total",
+        "de": "Schreibe insgesamt 1.000 Wörter"
+      }
+    },
+    {
+      "id": "words_50k",
+      "category": "writing",
+      "rarity": "rare",
+      "icon": "book-open-text",
+      "reward": 250,
+      "added": "0.2.0",
+      "condition": {
+        "type": "total",
+        "stat": "words",
+        "min": 50000
+      },
+      "title": {
+        "en": "Prolific",
+        "de": "Vielschreiber"
+      },
+      "description": {
+        "en": "Write 50,000 words in total",
+        "de": "Schreibe insgesamt 50.000 Wörter"
+      }
+    },
+    {
+      "id": "words_250k",
+      "category": "writing",
+      "rarity": "legendary",
+      "icon": "book-marked",
+      "reward": 1500,
+      "added": "0.2.0",
+      "condition": {
+        "type": "total",
+        "stat": "words",
+        "min": 250000
+      },
+      "title": {
+        "en": "Epic",
+        "de": "Epos"
+      },
+      "description": {
+        "en": "Write 250,000 words in total",
+        "de": "Schreibe insgesamt 250.000 Wörter"
+      }
+    },
+    {
+      "id": "words_1m",
+      "category": "writing",
+      "rarity": "legendary",
+      "icon": "infinity",
+      "reward": 5000,
+      "added": "0.2.0",
+      "condition": {
+        "type": "total",
+        "stat": "words",
+        "min": 1000000
+      },
+      "title": {
+        "en": "Millionaire",
+        "de": "Millionär"
+      },
+      "description": {
+        "en": "Write 1,000,000 words in total",
+        "de": "Schreibe insgesamt 1.000.000 Wörter"
+      }
+    },
+    {
+      "id": "words_day_5000",
+      "category": "writing",
+      "rarity": "epic",
+      "icon": "rocket",
+      "reward": 250,
+      "added": "0.2.0",
+      "condition": {
+        "type": "day",
+        "stat": "words",
+        "min": 5000
+      },
+      "title": {
+        "en": "Marathon",
+        "de": "Marathon"
+      },
+      "description": {
+        "en": "Write 5,000 words in one day",
+        "de": "Schreibe 5.000 Wörter an einem Tag"
+      }
+    },
+    {
+      "id": "long_note_2000",
+      "category": "writing",
+      "rarity": "rare",
+      "icon": "file-text",
+      "reward": 50,
+      "added": "0.2.0",
+      "condition": {
+        "type": "total",
+        "stat": "longestNote",
+        "min": 2000
+      },
+      "title": {
+        "en": "In Depth",
+        "de": "Ausführlich"
+      },
+      "description": {
+        "en": "Have a note with 2,000 words",
+        "de": "Habe eine Notiz mit 2.000 Wörtern"
+      }
+    },
+    {
+      "id": "long_note_10000",
+      "category": "writing",
+      "rarity": "epic",
+      "icon": "scroll",
+      "reward": 200,
+      "added": "0.2.0",
+      "condition": {
+        "type": "total",
+        "stat": "longestNote",
+        "min": 10000
+      },
+      "title": {
+        "en": "Magnum Opus",
+        "de": "Monumentalwerk"
+      },
+      "description": {
+        "en": "Have a note with 10,000 words",
+        "de": "Habe eine Notiz mit 10.000 Wörtern"
+      }
+    },
+    {
+      "id": "first_note",
+      "category": "structure",
+      "rarity": "common",
+      "icon": "file-plus",
+      "reward": 10,
+      "added": "0.1.0",
+      "condition": {
+        "type": "total",
+        "stat": "notesCreated",
+        "min": 1
+      },
+      "title": {
+        "en": "Blank Page",
+        "de": "Leeres Blatt"
+      },
+      "description": {
+        "en": "Create a new note",
+        "de": "Lege eine neue Notiz an"
+      }
+    },
+    {
+      "id": "first_folder",
+      "category": "structure",
+      "rarity": "common",
+      "icon": "folder-plus",
+      "reward": 10,
+      "added": "0.1.0",
+      "condition": {
+        "type": "total",
+        "stat": "foldersCreated",
+        "min": 1
+      },
+      "title": {
+        "en": "A Place for Everything",
+        "de": "Ordnung muss sein"
+      },
+      "description": {
+        "en": "Create a folder",
+        "de": "Lege einen Ordner an"
+      }
+    },
+    {
+      "id": "first_link",
+      "category": "structure",
+      "rarity": "common",
+      "icon": "link",
+      "reward": 10,
+      "added": "0.1.0",
+      "condition": {
+        "type": "total",
+        "stat": "links",
+        "min": 1
+      },
+      "title": {
+        "en": "Connected",
+        "de": "Verknüpft"
+      },
+      "description": {
+        "en": "Link one note to another",
+        "de": "Verlinke eine Notiz mit einer anderen"
+      }
+    },
+    {
+      "id": "links_100",
+      "category": "structure",
+      "rarity": "rare",
+      "icon": "network",
+      "reward": 100,
+      "added": "0.1.0",
+      "condition": {
+        "type": "total",
+        "stat": "links",
+        "min": 100
+      },
+      "title": {
+        "en": "Networker",
+        "de": "Netzwerker"
+      },
+      "description": {
+        "en": "Add 100 links",
+        "de": "Füge 100 Links hinzu"
+      }
+    },
+    {
+      "id": "first_tag",
+      "category": "structure",
+      "rarity": "common",
+      "icon": "tag",
+      "reward": 10,
+      "added": "0.1.0",
+      "condition": {
+        "type": "total",
+        "stat": "tags",
+        "min": 1
+      },
+      "title": {
+        "en": "Labeled",
+        "de": "Etikettiert"
+      },
+      "description": {
+        "en": "Give a note a tag",
+        "de": "Gib einer Notiz einen Tag"
+      }
+    },
+    {
+      "id": "notes_100",
+      "category": "structure",
+      "rarity": "rare",
+      "icon": "book-open",
+      "reward": 50,
+      "added": "0.1.0",
+      "condition": {
+        "type": "vaultNotes",
+        "min": 100
+      },
+      "title": {
+        "en": "Second Brain",
+        "de": "Zweites Gehirn"
+      },
+      "description": {
+        "en": "Have 100 notes in your vault",
+        "de": "Habe 100 Notizen im Vault"
+      }
+    },
+    {
+      "id": "notes_1000",
+      "category": "structure",
+      "rarity": "epic",
+      "icon": "landmark",
+      "reward": 250,
+      "added": "0.1.0",
+      "condition": {
+        "type": "vaultNotes",
+        "min": 1000
+      },
+      "title": {
+        "en": "Archivist",
+        "de": "Archivar"
+      },
+      "description": {
+        "en": "Have 1,000 notes in your vault",
+        "de": "Habe 1.000 Notizen im Vault"
+      }
+    },
+    {
+      "id": "notes_10",
+      "category": "structure",
+      "rarity": "common",
+      "icon": "files",
+      "reward": 15,
+      "added": "0.2.0",
+      "condition": {
+        "type": "vaultNotes",
+        "min": 10
+      },
+      "title": {
+        "en": "Collector",
+        "de": "Sammler"
+      },
+      "description": {
+        "en": "Have 10 notes in your vault",
+        "de": "Habe 10 Notizen im Vault"
+      }
+    },
+    {
+      "id": "notes_500",
+      "category": "structure",
+      "rarity": "rare",
+      "icon": "database",
+      "reward": 100,
+      "added": "0.2.0",
+      "condition": {
+        "type": "vaultNotes",
+        "min": 500
+      },
+      "title": {
+        "en": "Knowledge Base",
+        "de": "Wissensspeicher"
+      },
+      "description": {
+        "en": "Have 500 notes in your vault",
+        "de": "Habe 500 Notizen im Vault"
+      }
+    },
+    {
+      "id": "notes_5000",
+      "category": "structure",
+      "rarity": "legendary",
+      "icon": "castle",
+      "reward": 1000,
+      "added": "0.2.0",
+      "condition": {
+        "type": "vaultNotes",
+        "min": 5000
+      },
+      "title": {
+        "en": "Great Library",
+        "de": "Große Bibliothek"
+      },
+      "description": {
+        "en": "Have 5,000 notes in your vault",
+        "de": "Habe 5.000 Notizen im Vault"
+      }
+    },
+    {
+      "id": "folders_10",
+      "category": "structure",
+      "rarity": "common",
+      "icon": "folder-tree",
+      "reward": 20,
+      "added": "0.2.0",
+      "condition": {
+        "type": "total",
+        "stat": "foldersCreated",
+        "min": 10
+      },
+      "title": {
+        "en": "Architect",
+        "de": "Architekt"
+      },
+      "description": {
+        "en": "Have 10 folders",
+        "de": "Habe 10 Ordner"
+      }
+    },
+    {
+      "id": "folders_50",
+      "category": "structure",
+      "rarity": "rare",
+      "icon": "building-2",
+      "reward": 75,
+      "added": "0.2.0",
+      "condition": {
+        "type": "total",
+        "stat": "foldersCreated",
+        "min": 50
+      },
+      "title": {
+        "en": "Urban Planner",
+        "de": "Stadtplaner"
+      },
+      "description": {
+        "en": "Have 50 folders",
+        "de": "Habe 50 Ordner"
+      }
+    },
+    {
+      "id": "links_10",
+      "category": "structure",
+      "rarity": "common",
+      "icon": "link-2",
+      "reward": 20,
+      "added": "0.2.0",
+      "condition": {
+        "type": "total",
+        "stat": "links",
+        "min": 10
+      },
+      "title": {
+        "en": "Linked Up",
+        "de": "Vernetzt"
+      },
+      "description": {
+        "en": "Add 10 links",
+        "de": "Füge 10 Links hinzu"
+      }
+    },
+    {
+      "id": "links_1000",
+      "category": "structure",
+      "rarity": "epic",
+      "icon": "share-2",
+      "reward": 300,
+      "added": "0.2.0",
+      "condition": {
+        "type": "total",
+        "stat": "links",
+        "min": 1000
+      },
+      "title": {
+        "en": "Spider Web",
+        "de": "Spinnennetz"
+      },
+      "description": {
+        "en": "Add 1,000 links",
+        "de": "Füge 1.000 Links hinzu"
+      }
+    },
+    {
+      "id": "links_5000",
+      "category": "structure",
+      "rarity": "legendary",
+      "icon": "brain",
+      "reward": 1000,
+      "added": "0.2.0",
+      "condition": {
+        "type": "total",
+        "stat": "links",
+        "min": 5000
+      },
+      "title": {
+        "en": "Neural Network",
+        "de": "Neuronales Netz"
+      },
+      "description": {
+        "en": "Add 5,000 links",
+        "de": "Füge 5.000 Links hinzu"
+      }
+    },
+    {
+      "id": "hub_note_25",
+      "category": "structure",
+      "rarity": "rare",
+      "icon": "git-fork",
+      "reward": 50,
+      "added": "0.2.0",
+      "condition": {
+        "type": "total",
+        "stat": "maxLinksInNote",
+        "min": 25
+      },
+      "title": {
+        "en": "Hub",
+        "de": "Knotenpunkt"
+      },
+      "description": {
+        "en": "Have a note with 25 links",
+        "de": "Habe eine Notiz mit 25 Links"
+      }
+    },
+    {
+      "id": "hub_note_100",
+      "category": "structure",
+      "rarity": "epic",
+      "icon": "orbit",
+      "reward": 150,
+      "added": "0.2.0",
+      "condition": {
+        "type": "total",
+        "stat": "maxLinksInNote",
+        "min": 100
+      },
+      "title": {
+        "en": "Central Station",
+        "de": "Hauptbahnhof"
+      },
+      "description": {
+        "en": "Have a note with 100 links",
+        "de": "Habe eine Notiz mit 100 Links"
+      }
+    },
+    {
+      "id": "tags_25",
+      "category": "structure",
+      "rarity": "common",
+      "icon": "tags",
+      "reward": 20,
+      "added": "0.2.0",
+      "condition": {
+        "type": "total",
+        "stat": "tags",
+        "min": 25
+      },
+      "title": {
+        "en": "Sorted",
+        "de": "Sortiert"
+      },
+      "description": {
+        "en": "Add 25 tags",
+        "de": "Füge 25 Tags hinzu"
+      }
+    },
+    {
+      "id": "tags_250",
+      "category": "structure",
+      "rarity": "rare",
+      "icon": "layers",
+      "reward": 100,
+      "added": "0.2.0",
+      "condition": {
+        "type": "total",
+        "stat": "tags",
+        "min": 250
+      },
+      "title": {
+        "en": "Taxonomist",
+        "de": "Taxonom"
+      },
+      "description": {
+        "en": "Add 250 tags",
+        "de": "Füge 250 Tags hinzu"
+      }
+    },
+    {
+      "id": "tags_1000",
+      "category": "structure",
+      "rarity": "epic",
+      "icon": "library",
+      "reward": 300,
+      "added": "0.2.0",
+      "condition": {
+        "type": "total",
+        "stat": "tags",
+        "min": 1000
+      },
+      "title": {
+        "en": "Cataloguer",
+        "de": "Katalogisierer"
+      },
+      "description": {
+        "en": "Add 1,000 tags",
+        "de": "Füge 1.000 Tags hinzu"
+      }
+    },
+    {
+      "id": "first_task",
+      "category": "tasks",
+      "rarity": "common",
+      "icon": "clipboard-check",
+      "reward": 10,
+      "added": "0.1.0",
+      "condition": {
+        "type": "total",
+        "stat": "tasks",
+        "min": 1
+      },
+      "title": {
+        "en": "Checked Off",
+        "de": "Abgehakt"
+      },
+      "description": {
+        "en": "Complete a task",
+        "de": "Erledige eine Aufgabe"
+      }
+    },
+    {
+      "id": "tasks_100",
+      "category": "tasks",
+      "rarity": "rare",
+      "icon": "list-checks",
+      "reward": 100,
+      "added": "0.1.0",
+      "condition": {
+        "type": "total",
+        "stat": "tasks",
+        "min": 100
+      },
+      "title": {
+        "en": "Getting Things Done",
+        "de": "Macher"
+      },
+      "description": {
+        "en": "Complete 100 tasks",
+        "de": "Erledige 100 Aufgaben"
+      }
+    },
+    {
+      "id": "tasks_1000",
+      "category": "tasks",
+      "rarity": "epic",
+      "icon": "trophy",
+      "reward": 500,
+      "added": "0.1.0",
+      "condition": {
+        "type": "total",
+        "stat": "tasks",
+        "min": 1000
+      },
+      "title": {
+        "en": "Unstoppable",
+        "de": "Nicht zu stoppen"
+      },
+      "description": {
+        "en": "Complete 1,000 tasks",
+        "de": "Erledige 1.000 Aufgaben"
+      }
+    },
+    {
+      "id": "tasks_10",
+      "category": "tasks",
+      "rarity": "common",
+      "icon": "check",
+      "reward": 20,
+      "added": "0.2.0",
+      "condition": {
+        "type": "total",
+        "stat": "tasks",
+        "min": 10
+      },
+      "title": {
+        "en": "On It",
+        "de": "Am Ball"
+      },
+      "description": {
+        "en": "Complete 10 tasks",
+        "de": "Erledige 10 Aufgaben"
+      }
+    },
+    {
+      "id": "tasks_500",
+      "category": "tasks",
+      "rarity": "rare",
+      "icon": "check-check",
+      "reward": 200,
+      "added": "0.2.0",
+      "condition": {
+        "type": "total",
+        "stat": "tasks",
+        "min": 500
+      },
+      "title": {
+        "en": "Efficiency Engine",
+        "de": "Effizienzmaschine"
+      },
+      "description": {
+        "en": "Complete 500 tasks",
+        "de": "Erledige 500 Aufgaben"
+      }
+    },
+    {
+      "id": "tasks_5000",
+      "category": "tasks",
+      "rarity": "legendary",
+      "icon": "mountain",
+      "reward": 1500,
+      "added": "0.2.0",
+      "condition": {
+        "type": "total",
+        "stat": "tasks",
+        "min": 5000
+      },
+      "title": {
+        "en": "Summit",
+        "de": "Gipfelstürmer"
+      },
+      "description": {
+        "en": "Complete 5,000 tasks",
+        "de": "Erledige 5.000 Aufgaben"
+      }
+    },
+    {
+      "id": "tasks_day_10",
+      "category": "tasks",
+      "rarity": "rare",
+      "icon": "sparkles",
+      "reward": 50,
+      "added": "0.2.0",
+      "condition": {
+        "type": "day",
+        "stat": "tasks",
+        "min": 10
+      },
+      "title": {
+        "en": "Clean Sweep",
+        "de": "Aufräumtag"
+      },
+      "description": {
+        "en": "Complete 10 tasks in one day",
+        "de": "Erledige 10 Aufgaben an einem Tag"
+      }
+    },
+    {
+      "id": "tasks_day_25",
+      "category": "tasks",
+      "rarity": "epic",
+      "icon": "zap",
+      "reward": 150,
+      "added": "0.2.0",
+      "condition": {
+        "type": "day",
+        "stat": "tasks",
+        "min": 25
+      },
+      "title": {
+        "en": "Unstoppable Force",
+        "de": "Rundumschlag"
+      },
+      "description": {
+        "en": "Complete 25 tasks in one day",
+        "de": "Erledige 25 Aufgaben an einem Tag"
+      }
+    },
+    {
+      "id": "level_5",
+      "category": "level",
+      "rarity": "common",
+      "icon": "star",
+      "reward": 0,
+      "added": "0.1.0",
+      "condition": {
+        "type": "level",
+        "min": 5
+      },
+      "title": {
+        "en": "Apprentice",
+        "de": "Lehrling"
+      },
+      "description": {
+        "en": "Reach level 5",
+        "de": "Erreiche Level 5"
+      }
+    },
+    {
+      "id": "level_10",
+      "category": "level",
+      "rarity": "rare",
+      "icon": "sparkles",
+      "reward": 0,
+      "added": "0.1.0",
+      "condition": {
+        "type": "level",
+        "min": 10
+      },
+      "title": {
+        "en": "Journeyman",
+        "de": "Geselle"
+      },
+      "description": {
+        "en": "Reach level 10",
+        "de": "Erreiche Level 10"
+      }
+    },
+    {
+      "id": "level_25",
+      "category": "level",
+      "rarity": "epic",
+      "icon": "gem",
+      "reward": 0,
+      "added": "0.1.0",
+      "condition": {
+        "type": "level",
+        "min": 25
+      },
+      "title": {
+        "en": "Expert",
+        "de": "Experte"
+      },
+      "description": {
+        "en": "Reach level 25",
+        "de": "Erreiche Level 25"
+      }
+    },
+    {
+      "id": "level_50",
+      "category": "level",
+      "rarity": "legendary",
+      "icon": "crown",
+      "reward": 0,
+      "added": "0.1.0",
+      "condition": {
+        "type": "level",
+        "min": 50
+      },
+      "title": {
+        "en": "Grandmaster",
+        "de": "Großmeister"
+      },
+      "description": {
+        "en": "Reach level 50",
+        "de": "Erreiche Level 50"
+      }
+    },
+    {
+      "id": "level_1",
+      "category": "level",
+      "rarity": "common",
+      "icon": "arrow-up",
+      "reward": 0,
+      "added": "0.2.0",
+      "condition": {
+        "type": "level",
+        "min": 1
+      },
+      "title": {
+        "en": "First Step",
+        "de": "Erster Schritt"
+      },
+      "description": {
+        "en": "Reach level 1",
+        "de": "Erreiche Level 1"
+      }
+    },
+    {
+      "id": "level_40",
+      "category": "level",
+      "rarity": "epic",
+      "icon": "shield",
+      "reward": 0,
+      "added": "0.2.0",
+      "condition": {
+        "type": "level",
+        "min": 40
+      },
+      "title": {
+        "en": "Master",
+        "de": "Meister"
+      },
+      "description": {
+        "en": "Reach level 40",
+        "de": "Erreiche Level 40"
+      }
+    },
+    {
+      "id": "level_75",
+      "category": "level",
+      "rarity": "legendary",
+      "icon": "swords",
+      "reward": 0,
+      "added": "0.2.0",
+      "condition": {
+        "type": "level",
+        "min": 75
+      },
+      "title": {
+        "en": "Sage",
+        "de": "Weiser"
+      },
+      "description": {
+        "en": "Reach level 75",
+        "de": "Erreiche Level 75"
+      }
+    },
+    {
+      "id": "level_100",
+      "category": "level",
+      "rarity": "legendary",
+      "icon": "sun",
+      "reward": 0,
+      "added": "0.2.0",
+      "condition": {
+        "type": "level",
+        "min": 100
+      },
+      "title": {
+        "en": "Immortal",
+        "de": "Unsterblich"
+      },
+      "description": {
+        "en": "Reach level 100",
+        "de": "Erreiche Level 100"
+      }
+    },
+    {
+      "id": "streak_3",
+      "category": "streak",
+      "rarity": "common",
+      "icon": "calendar-check",
+      "reward": 30,
+      "added": "0.1.0",
+      "condition": {
+        "type": "streak",
+        "min": 3
+      },
+      "title": {
+        "en": "Habit Forming",
+        "de": "Gewohnheit"
+      },
+      "description": {
+        "en": "Keep a 3-day streak",
+        "de": "Halte einen Streak von 3 Tagen"
+      }
+    },
+    {
+      "id": "streak_7",
+      "category": "streak",
+      "rarity": "rare",
+      "icon": "calendar-range",
+      "reward": 100,
+      "added": "0.1.0",
+      "condition": {
+        "type": "streak",
+        "min": 7
+      },
+      "title": {
+        "en": "Full Week",
+        "de": "Volle Woche"
+      },
+      "description": {
+        "en": "Keep a 7-day streak",
+        "de": "Halte einen Streak von 7 Tagen"
+      }
+    },
+    {
+      "id": "streak_30",
+      "category": "streak",
+      "rarity": "epic",
+      "icon": "calendar-heart",
+      "reward": 500,
+      "added": "0.1.0",
+      "condition": {
+        "type": "streak",
+        "min": 30
+      },
+      "title": {
+        "en": "Iron Discipline",
+        "de": "Eiserne Disziplin"
+      },
+      "description": {
+        "en": "Keep a 30-day streak",
+        "de": "Halte einen Streak von 30 Tagen"
+      }
+    },
+    {
+      "id": "streak_14",
+      "category": "streak",
+      "rarity": "rare",
+      "icon": "calendar-days",
+      "reward": 150,
+      "added": "0.2.0",
+      "condition": {
+        "type": "streak",
+        "min": 14
+      },
+      "title": {
+        "en": "Two Weeks Strong",
+        "de": "Zwei Wochen am Stück"
+      },
+      "description": {
+        "en": "Keep a 14-day streak",
+        "de": "Halte einen Streak von 14 Tagen"
+      }
+    },
+    {
+      "id": "streak_100",
+      "category": "streak",
+      "rarity": "legendary",
+      "icon": "flame-kindling",
+      "reward": 1000,
+      "added": "0.2.0",
+      "condition": {
+        "type": "streak",
+        "min": 100
+      },
+      "title": {
+        "en": "Triple Digits",
+        "de": "Dreistellig"
+      },
+      "description": {
+        "en": "Keep a 100-day streak",
+        "de": "Halte einen Streak von 100 Tagen"
+      }
+    },
+    {
+      "id": "streak_365",
+      "category": "streak",
+      "rarity": "legendary",
+      "icon": "award",
+      "reward": 3650,
+      "added": "0.2.0",
+      "condition": {
+        "type": "streak",
+        "min": 365
+      },
+      "title": {
+        "en": "A Whole Year",
+        "de": "Ein ganzes Jahr"
+      },
+      "description": {
+        "en": "Keep a 365-day streak",
+        "de": "Halte einen Streak von 365 Tagen"
+      }
+    },
+    {
+      "id": "night_owl",
+      "category": "time",
+      "rarity": "rare",
+      "icon": "moon",
+      "reward": 25,
+      "added": "0.1.0",
+      "condition": {
+        "type": "total",
+        "stat": "nightWords",
+        "min": 1
+      },
+      "title": {
+        "en": "Night Owl",
+        "de": "Nachteule"
+      },
+      "description": {
+        "en": "Write between midnight and 5 am",
+        "de": "Schreibe zwischen Mitternacht und 5 Uhr"
+      }
+    },
+    {
+      "id": "early_bird",
+      "category": "time",
+      "rarity": "rare",
+      "icon": "sunrise",
+      "reward": 25,
+      "added": "0.1.0",
+      "condition": {
+        "type": "total",
+        "stat": "earlyWords",
+        "min": 1
+      },
+      "title": {
+        "en": "Early Bird",
+        "de": "Frühaufsteher"
+      },
+      "description": {
+        "en": "Write between 5 and 7 am",
+        "de": "Schreibe zwischen 5 und 7 Uhr"
+      }
+    },
+    {
+      "id": "active_10",
+      "category": "time",
+      "rarity": "common",
+      "icon": "calendar",
+      "reward": 30,
+      "added": "0.2.0",
+      "condition": {
+        "type": "activeDays",
+        "min": 10
+      },
+      "title": {
+        "en": "Regular",
+        "de": "Regelmäßig"
+      },
+      "description": {
+        "en": "Write on 10 different days",
+        "de": "Schreibe an 10 verschiedenen Tagen"
+      }
+    },
+    {
+      "id": "active_50",
+      "category": "time",
+      "rarity": "rare",
+      "icon": "calendar-plus",
+      "reward": 100,
+      "added": "0.2.0",
+      "condition": {
+        "type": "activeDays",
+        "min": 50
+      },
+      "title": {
+        "en": "Regular Guest",
+        "de": "Stammgast"
+      },
+      "description": {
+        "en": "Write on 50 different days",
+        "de": "Schreibe an 50 verschiedenen Tagen"
+      }
+    },
+    {
+      "id": "active_100",
+      "category": "time",
+      "rarity": "epic",
+      "icon": "calendar-clock",
+      "reward": 250,
+      "added": "0.2.0",
+      "condition": {
+        "type": "activeDays",
+        "min": 100
+      },
+      "title": {
+        "en": "Hundred Days",
+        "de": "Hundert Tage"
+      },
+      "description": {
+        "en": "Write on 100 different days",
+        "de": "Schreibe an 100 verschiedenen Tagen"
+      }
+    },
+    {
+      "id": "active_365",
+      "category": "time",
+      "rarity": "legendary",
+      "icon": "tree-deciduous",
+      "reward": 1000,
+      "added": "0.2.0",
+      "condition": {
+        "type": "activeDays",
+        "min": 365
+      },
+      "title": {
+        "en": "Growth Rings",
+        "de": "Jahresringe"
+      },
+      "description": {
+        "en": "Write on 365 different days",
+        "de": "Schreibe an 365 verschiedenen Tagen"
+      }
+    },
+    {
+      "id": "weekend",
+      "category": "time",
+      "rarity": "common",
+      "icon": "coffee",
+      "reward": 15,
+      "added": "0.2.0",
+      "condition": {
+        "type": "date",
+        "weekdays": [
+          0,
+          6
+        ]
+      },
+      "title": {
+        "en": "Weekend Writer",
+        "de": "Wochenendschreiber"
+      },
+      "description": {
+        "en": "Write on a Saturday or Sunday",
+        "de": "Schreibe an einem Samstag oder Sonntag"
+      }
+    },
+    {
+      "id": "comeback",
+      "category": "time",
+      "rarity": "rare",
+      "icon": "rotate-ccw",
+      "reward": 30,
+      "added": "0.2.0",
+      "condition": {
+        "type": "comeback",
+        "gapDays": 14
+      },
+      "title": {
+        "en": "Welcome Back",
+        "de": "Wieder da"
+      },
+      "description": {
+        "en": "Write again after a break of at least 14 days",
+        "de": "Schreibe wieder nach mindestens 14 Tagen Pause"
+      }
+    },
+    {
+      "id": "diary_7",
+      "category": "time",
+      "rarity": "common",
+      "icon": "notebook",
+      "reward": 20,
+      "added": "0.2.0",
+      "condition": {
+        "type": "total",
+        "stat": "dailyNotes",
+        "min": 7
+      },
+      "title": {
+        "en": "Diary",
+        "de": "Tagebuch"
+      },
+      "description": {
+        "en": "Have 7 daily notes",
+        "de": "Habe 7 Daily Notes"
+      }
+    },
+    {
+      "id": "diary_30",
+      "category": "time",
+      "rarity": "rare",
+      "icon": "notebook-pen",
+      "reward": 100,
+      "added": "0.2.0",
+      "condition": {
+        "type": "total",
+        "stat": "dailyNotes",
+        "min": 30
+      },
+      "title": {
+        "en": "Chronicler",
+        "de": "Chronist"
+      },
+      "description": {
+        "en": "Have 30 daily notes",
+        "de": "Habe 30 Daily Notes"
+      }
+    },
+    {
+      "id": "diary_365",
+      "category": "time",
+      "rarity": "epic",
+      "icon": "book-copy",
+      "reward": 500,
+      "added": "0.2.0",
+      "condition": {
+        "type": "total",
+        "stat": "dailyNotes",
+        "min": 365
+      },
+      "title": {
+        "en": "Yearbook",
+        "de": "Jahrbuch"
+      },
+      "description": {
+        "en": "Have 365 daily notes",
+        "de": "Habe 365 Daily Notes"
+      }
+    },
+    {
+      "id": "first_quest",
+      "category": "quests",
+      "rarity": "common",
+      "icon": "target",
+      "reward": 10,
+      "added": "0.1.0",
+      "condition": {
+        "type": "total",
+        "stat": "questsCompleted",
+        "min": 1
+      },
+      "title": {
+        "en": "Quest Accepted",
+        "de": "Quest angenommen"
+      },
+      "description": {
+        "en": "Complete a daily quest",
+        "de": "Erledige eine Tagesquest"
+      }
+    },
+    {
+      "id": "quest_day",
+      "category": "quests",
+      "rarity": "rare",
+      "icon": "medal",
+      "reward": 50,
+      "added": "0.1.0",
+      "condition": {
+        "type": "allQuestsToday"
+      },
+      "title": {
+        "en": "Daily Champion",
+        "de": "Tageschampion"
+      },
+      "description": {
+        "en": "Complete all quests of a day",
+        "de": "Erledige alle Quests eines Tages"
+      }
+    },
+    {
+      "id": "quests_50",
+      "category": "quests",
+      "rarity": "epic",
+      "icon": "swords",
+      "reward": 250,
+      "added": "0.1.0",
+      "condition": {
+        "type": "total",
+        "stat": "questsCompleted",
+        "min": 50
+      },
+      "title": {
+        "en": "Adventurer",
+        "de": "Abenteurer"
+      },
+      "description": {
+        "en": "Complete 50 daily quests",
+        "de": "Erledige 50 Tagesquests"
+      }
+    },
+    {
+      "id": "quests_10",
+      "category": "quests",
+      "rarity": "common",
+      "icon": "scroll-text",
+      "reward": 30,
+      "added": "0.2.0",
+      "condition": {
+        "type": "total",
+        "stat": "questsCompleted",
+        "min": 10
+      },
+      "title": {
+        "en": "Mercenary",
+        "de": "Söldner"
+      },
+      "description": {
+        "en": "Complete 10 daily quests",
+        "de": "Erledige 10 Tagesquests"
+      }
+    },
+    {
+      "id": "quests_200",
+      "category": "quests",
+      "rarity": "legendary",
+      "icon": "crown",
+      "reward": 1000,
+      "added": "0.2.0",
+      "condition": {
+        "type": "total",
+        "stat": "questsCompleted",
+        "min": 200
+      },
+      "title": {
+        "en": "Quest Master",
+        "de": "Questmeister"
+      },
+      "description": {
+        "en": "Complete 200 daily quests",
+        "de": "Erledige 200 Tagesquests"
+      }
+    },
+    {
+      "id": "quest_days_10",
+      "category": "quests",
+      "rarity": "rare",
+      "icon": "flag",
+      "reward": 150,
+      "added": "0.2.0",
+      "condition": {
+        "type": "total",
+        "stat": "questDays",
+        "min": 10
+      },
+      "title": {
+        "en": "Dutiful",
+        "de": "Pflichtbewusst"
+      },
+      "description": {
+        "en": "Complete all quests on 10 days",
+        "de": "Erledige an 10 Tagen alle Quests"
+      }
+    },
+    {
+      "id": "new_year",
+      "category": "special",
+      "rarity": "rare",
+      "icon": "party-popper",
+      "reward": 50,
+      "added": "0.2.0",
+      "condition": {
+        "type": "date",
+        "month": 1,
+        "day": 1
+      },
+      "secret": true,
+      "title": {
+        "en": "Good Intentions",
+        "de": "Guter Vorsatz"
+      },
+      "description": {
+        "en": "Write on New Year's Day",
+        "de": "Schreibe an Neujahr"
+      }
+    },
+    {
+      "id": "christmas_eve",
+      "category": "special",
+      "rarity": "rare",
+      "icon": "gift",
+      "reward": 50,
+      "added": "0.2.0",
+      "condition": {
+        "type": "date",
+        "month": 12,
+        "day": 24
+      },
+      "secret": true,
+      "title": {
+        "en": "Silent Night",
+        "de": "Stille Nacht"
+      },
+      "description": {
+        "en": "Write on Christmas Eve",
+        "de": "Schreibe an Heiligabend"
+      }
+    },
+    {
+      "id": "halloween",
+      "category": "special",
+      "rarity": "rare",
+      "icon": "ghost",
+      "reward": 50,
+      "added": "0.2.0",
+      "condition": {
+        "type": "date",
+        "month": 10,
+        "day": 31
+      },
+      "secret": true,
+      "title": {
+        "en": "Ghost Story",
+        "de": "Gruselgeschichte"
+      },
+      "description": {
+        "en": "Write on Halloween",
+        "de": "Schreibe an Halloween"
+      }
+    },
+    {
+      "id": "leap_day",
+      "category": "special",
+      "rarity": "epic",
+      "icon": "rabbit",
+      "reward": 100,
+      "added": "0.2.0",
+      "condition": {
+        "type": "date",
+        "month": 2,
+        "day": 29
+      },
+      "secret": true,
+      "title": {
+        "en": "Leap of Faith",
+        "de": "Schaltjahr"
+      },
+      "description": {
+        "en": "Write on February 29",
+        "de": "Schreibe am 29. Februar"
+      }
+    },
+    {
+      "id": "friday_13",
+      "category": "special",
+      "rarity": "rare",
+      "icon": "cat",
+      "reward": 50,
+      "added": "0.2.0",
+      "condition": {
+        "type": "date",
+        "day": 13,
+        "weekdays": [
+          5
+        ]
+      },
+      "secret": true,
+      "title": {
+        "en": "Unlucky for Some",
+        "de": "Freitag, der 13."
+      },
+      "description": {
+        "en": "Write on a Friday the 13th",
+        "de": "Schreibe an einem Freitag, dem 13."
+      }
+    }
+  ]
+}

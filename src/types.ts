@@ -44,6 +44,14 @@ export interface Totals {
   questsCompleted: number;
   nightWords: number;
   earlyWords: number;
+  /** Words in the longest note ever written or imported. */
+  longestNote: number;
+  /** Most links in a single note. */
+  maxLinksInNote: number;
+  /** Notes named YYYY-MM-DD.md. */
+  dailyNotes: number;
+  /** Days on which every daily quest was completed. */
+  questDays: number;
 }
 
 export interface DayStats {

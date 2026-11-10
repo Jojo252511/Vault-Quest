@@ -1,9 +1,9 @@
 import type { DayStats, Progress, XpRules } from "../types";
 import { emptyDay, emptyProgress } from "../defaults";
-import { ACHIEVEMENTS, type AchievementContext } from "./achievements";
+import { ACHIEVEMENTS, evaluate, type AchievementContext } from "./achievements";
 import { levelInfo } from "./levels";
 import { markStreakDay } from "./streak";
-import { analyze, dayKey } from "./text";
+import { analyze, dayKey, isDailyNotePath } from "./text";
 
 export interface ScannedNote {
   path: string;
@@ -61,6 +61,35 @@ function xpOf(day: DayStats, rules: XpRules): number {
   );
 }
 
+/** Per-note facts that are maxima or counts rather than sums of words. */
+interface DayMeta {
+  longestNote: number;
+  maxLinksInNote: number;
+  dailyNotes: number;
+}
+
+/** Groups the per-note facts by the day each note is attributed to. */
+export function collectNoteMeta(notes: ScannedNote[], today: string = dayKey()): Map<string, DayMeta> {
+  const meta = new Map<string, DayMeta>();
+  for (const note of notes) {
+    const key = noteDay(note, today);
+    const c = analyze(note.text);
+    const m = meta.get(key) ?? { longestNote: 0, maxLinksInNote: 0, dailyNotes: 0 };
+    m.longestNote = Math.max(m.longestNote, c.words);
+    m.maxLinksInNote = Math.max(m.maxLinksInNote, c.links);
+    if (isDailyNotePath(note.path)) m.dailyNotes++;
+    meta.set(key, m);
+  }
+  return meta;
+}
+
+function applyMeta(totals: Progress["totals"], m: DayMeta | undefined): void {
+  if (!m) return;
+  totals.longestNote = Math.max(totals.longestNote, m.longestNote);
+  totals.maxLinksInNote = Math.max(totals.maxLinksInNote, m.maxLinksInNote);
+  totals.dailyNotes += m.dailyNotes;
+}
+
 /** Noon of a YYYY-MM-DD day, used as the retroactive unlock time. */
 function dayTimestamp(key: string): number {
   const [y, m, d] = key.split("-").map(Number);
@@ -98,6 +127,7 @@ export function importVault(
     days.set(key, day);
     words += c.words;
   }
+  const meta = collectNoteMeta(notes, today);
   const factor = Math.min(Math.max(xpFactor, 0), 1);
   for (const day of days.values()) day.xp = Math.round(xpOf(day, rules) * factor);
 
@@ -105,19 +135,19 @@ export function importVault(
   const sim = emptyProgress();
   const unlockedAt: Record<string, number> = {};
   let noteCount = 0;
-  const check = (dayStats: DayStats, key: string, folders: number) => {
+  const check = (dayStats: DayStats, key: string) => {
     const ctx: AchievementContext = {
       progress: sim,
       level: levelInfo(sim.xp).level,
-      todayWords: dayStats.words,
+      dayKey: key,
+      day: dayStats,
       noteCount,
-      folderCount: folders,
     };
     // loop because achievement rewards can lift the level and unlock level achievements
     for (let guard = 0; guard < 10; guard++) {
       let any = false;
       for (const a of ACHIEVEMENTS) {
-        if (sim.unlocked[a.id] || !a.check(ctx)) continue;
+        if (sim.unlocked[a.id] || !evaluate(a.condition, ctx)) continue;
         sim.unlocked[a.id] = dayTimestamp(key);
         unlockedAt[a.id] = sim.unlocked[a.id];
         sim.xp += Math.round(a.reward * rules.rewardFactor);
@@ -130,6 +160,8 @@ export function importVault(
 
   for (const key of [...days.keys()].sort()) {
     const day = days.get(key)!;
+    sim.days[key] = day;
+    applyMeta(sim.totals, meta.get(key));
     sim.xp += day.xp;
     sim.totals.words += day.words;
     sim.totals.notesCreated += day.notes;
@@ -138,15 +170,18 @@ export function importVault(
     sim.totals.tasks += day.tasks;
     noteCount += day.notes;
     if (day.words >= streakMinWords) markStreakDay(sim.streak, key);
-    check(day, key, 0);
+    check(day, key);
   }
   // folders have no reliable date, they count from today
   sim.totals.foldersCreated += folderCount;
-  check(days.get(today) ?? emptyDay(), today, folderCount);
+  check(days.get(today) ?? emptyDay(), today);
 
   // 3. merge into the real progress
   progress.xp += sim.xp;
-  for (const k of Object.keys(sim.totals) as (keyof typeof sim.totals)[]) progress.totals[k] += sim.totals[k];
+  for (const k of Object.keys(sim.totals) as (keyof typeof sim.totals)[]) {
+    if (k === "longestNote" || k === "maxLinksInNote") progress.totals[k] = Math.max(progress.totals[k], sim.totals[k]);
+    else progress.totals[k] += sim.totals[k];
+  }
   for (const [key, day] of days) {
     const existing = progress.days[key] ?? emptyDay();
     for (const k of Object.keys(day) as (keyof DayStats)[]) existing[k] += day[k];
@@ -188,7 +223,8 @@ export function unknownAchievements(progress: Progress): string[] {
  * Checks the given achievements retroactively against the stored day statistics (mutates `progress`).
  * Each one gets the date on which it would have been earned; only its reward is added as XP.
  * Counters without per-day history (folders, quests, night/early writing) are checked against
- * today's totals.
+ * today's totals. If `notes` is given, per-note facts that older versions did not record
+ * (longest note, links per note, daily notes) are taken from the vault and dated as well.
  */
 export function backfillAchievements(
   progress: Progress,
@@ -197,7 +233,18 @@ export function backfillAchievements(
   streakMinWords: number,
   noteCount: number,
   today: string = dayKey(),
+  notes?: ScannedNote[],
 ): string[] {
+  const meta = notes ? collectNoteMeta(notes, today) : new Map<string, DayMeta>();
+  if (notes) {
+    // stats introduced after the import: take them from the vault as it is now
+    const scanned = { longestNote: 0, maxLinksInNote: 0, dailyNotes: 0 } as Progress["totals"];
+    for (const m of meta.values()) applyMeta(scanned, m);
+    const t = progress.totals;
+    t.longestNote = Math.max(t.longestNote, scanned.longestNote);
+    t.maxLinksInNote = Math.max(t.maxLinksInNote, scanned.maxLinksInNote);
+    t.dailyNotes = Math.max(t.dailyNotes, scanned.dailyNotes);
+  }
   const targets = ACHIEVEMENTS.filter((a) => ids.includes(a.id) && !progress.unlocked[a.id]);
   const unlocked: string[] = [];
   if (targets.length > 0) {
@@ -205,7 +252,7 @@ export function backfillAchievements(
     let notes = 0;
     const check = (ctx: AchievementContext, ts: number) => {
       for (const a of targets) {
-        if (progress.unlocked[a.id] || !a.check(ctx)) continue;
+        if (progress.unlocked[a.id] || !evaluate(a.condition, ctx)) continue;
         progress.unlocked[a.id] = ts;
         progress.xp += Math.round(a.reward * rules.rewardFactor);
         unlocked.push(a.id);
@@ -215,6 +262,8 @@ export function backfillAchievements(
     for (const key of Object.keys(progress.days).sort()) {
       if (key > today) continue;
       const day = progress.days[key];
+      sim.days[key] = day;
+      applyMeta(sim.totals, meta.get(key));
       sim.xp += day.xp;
       sim.totals.words += day.words;
       sim.totals.notesCreated += day.notes;
@@ -223,19 +272,16 @@ export function backfillAchievements(
       sim.totals.tasks += day.tasks;
       notes += day.notes;
       if (day.words >= streakMinWords) markStreakDay(sim.streak, key);
-      check(
-        { progress: sim, level: levelInfo(sim.xp).level, todayWords: day.words, noteCount: notes, folderCount: 0 },
-        dayTimestamp(key),
-      );
+      check({ progress: sim, level: levelInfo(sim.xp).level, dayKey: key, day, noteCount: notes }, dayTimestamp(key));
     }
     // everything without history, against the real current state
     check(
       {
         progress,
         level: levelInfo(progress.xp).level,
-        todayWords: progress.days[today]?.words ?? 0,
+        dayKey: today,
+        day: progress.days[today] ?? emptyDay(),
         noteCount,
-        folderCount: progress.totals.foldersCreated,
       },
       Date.now(),
     );

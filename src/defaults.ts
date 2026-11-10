@@ -28,6 +28,10 @@ export function emptyTotals(): Totals {
     questsCompleted: 0,
     nightWords: 0,
     earlyWords: 0,
+    longestNote: 0,
+    maxLinksInNote: 0,
+    dailyNotes: 0,
+    questDays: 0,
   };
 }
 

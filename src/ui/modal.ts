@@ -1,11 +1,11 @@
 import { App, Modal, setIcon } from "obsidian";
-import { ACHIEVEMENTS, RARITY_ORDER, type Achievement, type Category } from "../core/achievements";
+import { ACHIEVEMENTS, CATEGORIES, RARITIES, type Achievement } from "../core/achievements";
 import { scaledReward, streakMinWords } from "../core/difficulty";
 import { levelInfo } from "../core/levels";
 import { questById, questValue, type QuestDef } from "../core/quests";
 import { displayedStreak } from "../core/streak";
 import { addDays, dayKey } from "../core/text";
-import { formatDate, formatNumber, t, type TranslationKey } from "../i18n";
+import { formatDate, formatNumber, t, type TranslationKey, localized } from "../i18n";
 import type { Progress, Settings } from "../types";
 
 export type Tab = "achievements" | "quests" | "stats";
@@ -19,7 +19,6 @@ export interface QuestHost {
   ensureQuests(): void;
 }
 
-const CATEGORIES: Category[] = ["writing", "structure", "tasks", "level", "streak", "special"];
 
 export function questLabel(q: QuestDef): string {
   if (q.metric === "notes" && q.target === 1) return t("quest.notes.one");
@@ -27,11 +26,11 @@ export function questLabel(q: QuestDef): string {
 }
 
 export function achievementTitle(a: Achievement): string {
-  return t(`ach.${a.id}.title` as TranslationKey);
+  return localized(a.title);
 }
 
 export function achievementDesc(a: Achievement): string {
-  return t(`ach.${a.id}.desc` as TranslationKey);
+  return localized(a.description);
 }
 
 export class QuestModal extends Modal {
@@ -129,7 +128,7 @@ export class QuestModal extends Modal {
     for (const cat of CATEGORIES) {
       const list = ACHIEVEMENTS.filter((a) => a.category === cat)
         .filter((a) => this.filter === "all" || (this.filter === "unlocked") === !!unlocked[a.id])
-        .sort((a, b) => RARITY_ORDER.indexOf(a.rarity) - RARITY_ORDER.indexOf(b.rarity));
+        .sort((a, b) => RARITIES.indexOf(a.rarity) - RARITIES.indexOf(b.rarity));
       if (list.length === 0) continue;
       const done = ACHIEVEMENTS.filter((a) => a.category === cat && unlocked[a.id]).length;
       const total = ACHIEVEMENTS.filter((a) => a.category === cat).length;
@@ -144,14 +143,16 @@ export class QuestModal extends Modal {
   private renderCard(parent: HTMLElement, a: Achievement, unlockedAt: number | undefined): void {
     const card = parent.createDiv({ cls: `vq-card vq-rarity-${a.rarity}` });
     if (!unlockedAt) card.addClass("is-locked");
+    const hidden = !!a.secret && !unlockedAt;
+    if (hidden) card.addClass("is-secret");
     const icon = card.createDiv({ cls: "vq-card-icon" });
-    setIcon(icon, unlockedAt ? a.icon : "lock");
+    setIcon(icon, unlockedAt ? a.icon : hidden ? "eye-off" : "lock");
     const body = card.createDiv({ cls: "vq-card-body" });
     const top = body.createDiv({ cls: "vq-card-top" });
-    top.createDiv({ cls: "vq-card-title", text: achievementTitle(a) });
+    top.createDiv({ cls: "vq-card-title", text: hidden ? t("modal.secret.title") : achievementTitle(a) });
     const reward = scaledReward(a.reward, this.host.settings.difficulty);
     if (reward > 0) top.createDiv({ cls: "vq-card-reward", text: t("modal.reward", { xp: reward }) });
-    body.createDiv({ cls: "vq-card-desc", text: achievementDesc(a) });
+    body.createDiv({ cls: "vq-card-desc", text: hidden ? t("modal.secret.desc") : achievementDesc(a) });
     const meta = body.createDiv({ cls: "vq-card-meta" });
     const left = meta.createDiv({ cls: "vq-card-meta-left" });
     left.createSpan({ cls: "vq-rarity-pill", text: t(`rarity.${a.rarity}` as TranslationKey) });
@@ -226,7 +227,7 @@ export class QuestModal extends Modal {
     tile("file-text", "stats.notes", formatNumber(tot.notesCreated));
     tile("link", "stats.links", formatNumber(tot.links));
     tile("tag", "stats.tags", formatNumber(tot.tags));
-    tile("check-square", "stats.tasks", formatNumber(tot.tasks));
+    tile("clipboard-check", "stats.tasks", formatNumber(tot.tasks));
     tile("target", "stats.quests", formatNumber(tot.questsCompleted));
 
     const head = this.bodyEl.createDiv({ cls: "vq-section-head" });

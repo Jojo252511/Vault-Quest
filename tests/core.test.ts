@@ -7,9 +7,7 @@ import { backfillAchievements, importVault, isExcluded, noteDay, unknownAchievem
 import { seal, unseal } from "../src/core/store";
 import { emptyDay, emptyProgress, mergeProgress, mergeSettings } from "../src/defaults";
 import { DIFFICULTIES, scaledReward, xpRules } from "../src/core/difficulty";
-import { ACHIEVEMENTS } from "../src/core/achievements";
-import { en } from "../src/i18n/en";
-import { de } from "../src/i18n/de";
+import { ACHIEVEMENTS, CATEGORIES, RARITIES, evaluate, type AchievementContext, type Condition } from "../src/core/achievements";
 
 describe("levels", () => {
   it("follows the curve", () => {
@@ -171,14 +169,34 @@ describe("store", () => {
   });
 });
 
-describe("i18n", () => {
-  it("has a title and description for every achievement in both languages", () => {
-    for (const a of ACHIEVEMENTS) {
-      for (const dict of [en, de] as Record<string, string>[]) {
-        expect(dict[`ach.${a.id}.title`], a.id).toBeTruthy();
-        expect(dict[`ach.${a.id}.desc`], a.id).toBeTruthy();
-      }
+describe("achievements.json", () => {
+  const conditionTypes = [
+    "total", "day", "level", "streak", "vaultNotes", "allQuestsToday", "activeDays", "date", "comeback",
+  ];
+  const totals = Object.keys(emptyProgress().totals);
+  const dayStats = Object.keys(emptyDay()).filter((k) => k !== "xp");
+
+  it("has unique ids", () => {
+    const ids = ACHIEVEMENTS.map((a) => a.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it.each(ACHIEVEMENTS.map((a) => [a.id, a] as const))("%s is complete and valid", (_id, a) => {
+    expect(a.id).toMatch(/^[a-z0-9_]+$/);
+    expect(CATEGORIES).toContain(a.category);
+    expect(RARITIES).toContain(a.rarity);
+    expect(a.icon).toMatch(/^[a-z0-9-]+$/);
+    expect(a.reward).toBeGreaterThanOrEqual(0);
+    expect(a.added).toMatch(/^\d+\.\d+\.\d+$/);
+    for (const text of [a.title, a.description]) {
+      expect(text.en.trim()).not.toBe("");
+      expect(text.de.trim()).not.toBe("");
     }
+    const c = a.condition as unknown as Record<string, unknown>;
+    expect(conditionTypes).toContain(c.type);
+    if (c.type === "total") expect(totals).toContain(c.stat);
+    if (c.type === "day") expect(dayStats).toContain(c.stat);
+    if ("min" in c) expect(typeof c.min).toBe("number");
   });
 });
 
@@ -229,5 +247,68 @@ describe("achievements added by updates", () => {
     const p = mergeProgress({ xp: 10 });
     expect(p.knownAchievements).toBeNull();
     expect(unknownAchievements(p)).toEqual([]);
+  });
+});
+
+describe("condition types", () => {
+  const ctx = (dayKey: string, days: Record<string, number>): AchievementContext => {
+    const progress = emptyProgress();
+    for (const [k, w] of Object.entries(days)) progress.days[k] = { ...emptyDay(), words: w };
+    return { progress, level: 0, dayKey, day: progress.days[dayKey] ?? emptyDay(), noteCount: 0 };
+  };
+  const ok = (c: Condition, x: AchievementContext) => evaluate(c, x);
+
+  it("date matches month, day and weekdays, only with written words", () => {
+    expect(ok({ type: "date", month: 12, day: 24 }, ctx("2026-12-24", { "2026-12-24": 5 }))).toBe(true);
+    expect(ok({ type: "date", month: 12, day: 24 }, ctx("2026-12-24", { "2026-12-24": 0 }))).toBe(false);
+    expect(ok({ type: "date", month: 12, day: 24 }, ctx("2026-12-23", { "2026-12-23": 5 }))).toBe(false);
+    // 2026-11-13 is a Friday, 2026-11-14 a Saturday
+    expect(ok({ type: "date", day: 13, weekdays: [5] }, ctx("2026-11-13", { "2026-11-13": 1 }))).toBe(true);
+    expect(ok({ type: "date", day: 13, weekdays: [5] }, ctx("2026-10-13", { "2026-10-13": 1 }))).toBe(false);
+    expect(ok({ type: "date", weekdays: [0, 6] }, ctx("2026-11-14", { "2026-11-14": 1 }))).toBe(true);
+    expect(ok({ type: "date", weekdays: [0, 6] }, ctx("2026-11-13", { "2026-11-13": 1 }))).toBe(false);
+  });
+
+  it("activeDays counts days with words up to the evaluated day", () => {
+    const days = { "2026-11-01": 3, "2026-11-02": 0, "2026-11-03": 9, "2026-11-04": 2 };
+    expect(ok({ type: "activeDays", min: 3 }, ctx("2026-11-04", days))).toBe(true);
+    expect(ok({ type: "activeDays", min: 3 }, ctx("2026-11-03", days))).toBe(false);
+  });
+
+  it("comeback needs a gap to the previous writing day", () => {
+    expect(ok({ type: "comeback", gapDays: 14 }, ctx("2026-11-20", { "2026-11-01": 5, "2026-11-20": 5 }))).toBe(true);
+    expect(ok({ type: "comeback", gapDays: 14 }, ctx("2026-11-10", { "2026-11-01": 5, "2026-11-10": 5 }))).toBe(false);
+    expect(ok({ type: "comeback", gapDays: 14 }, ctx("2026-11-20", { "2026-11-20": 5 }))).toBe(false);
+  });
+
+});
+
+describe("per-note stats", () => {
+  it("are collected on import and dated", () => {
+    const p = emptyProgress();
+    const notes = [
+      { path: "Daily/2026-11-01.md", text: "kurz", ctime: 0 },
+      { path: "Daily/2026-11-02.md", text: "wort ".repeat(2100), ctime: 0 },
+      { path: "Hub.md", text: "---\ndate: 2026-11-03\n---\n" + "[[x]] ".repeat(30), ctime: 0 },
+    ];
+    importVault(p, notes, 0, xpRules("medium"), 50, "2026-11-06");
+    expect(p.totals.dailyNotes).toBe(2);
+    expect(p.totals.longestNote).toBe(2100);
+    expect(p.totals.maxLinksInNote).toBe(30);
+    expect(p.unlocked.long_note_2000).toBe(new Date(2026, 10, 2, 12).getTime());
+    expect(p.unlocked.hub_note_25).toBe(new Date(2026, 10, 3, 12).getTime());
+  });
+
+  it("are filled in by the backfill for progress from older versions", () => {
+    const p = emptyProgress();
+    const notes = [{ path: "2026-11-02.md", text: "wort ".repeat(2100), ctime: 0 }];
+    importVault(p, notes, 0, xpRules("medium"), 50, "2026-11-06");
+    // older version: no per-note stats, achievement unknown
+    p.totals.longestNote = 0;
+    delete p.unlocked.long_note_2000;
+    p.knownAchievements = p.knownAchievements!.filter((id) => id !== "long_note_2000");
+    backfillAchievements(p, unknownAchievements(p), xpRules("medium"), 50, 1, "2026-11-06", notes);
+    expect(p.totals.longestNote).toBe(2100);
+    expect(p.unlocked.long_note_2000).toBe(new Date(2026, 10, 2, 12).getTime());
   });
 });

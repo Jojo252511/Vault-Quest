@@ -65,6 +65,12 @@ export function analyze(text: string): NoteCounts {
   };
 }
 
+/** Daily notes are named exactly YYYY-MM-DD.md (the core Daily Notes default). */
+export function isDailyNotePath(path: string): boolean {
+  const base = path.split("/").pop() ?? path;
+  return /^\d{4}-\d{2}-\d{2}\.md$/.test(base);
+}
+
 /** Local date as YYYY-MM-DD. */
 export function dayKey(date: Date = new Date()): string {
   const y = date.getFullYear();

@@ -14,7 +14,7 @@ export const QUEST_POOL: QuestDef[] = [
   { id: "words_200", metric: "words", target: 200, reward: 30, icon: "pen-line" },
   { id: "words_500", metric: "words", target: 500, reward: 60, icon: "pen-line" },
   { id: "words_1000", metric: "words", target: 1000, reward: 120, icon: "flame" },
-  { id: "tasks_3", metric: "tasks", target: 3, reward: 30, icon: "check-square" },
+  { id: "tasks_3", metric: "tasks", target: 3, reward: 30, icon: "clipboard-check" },
   { id: "tasks_5", metric: "tasks", target: 5, reward: 50, icon: "list-checks" },
   { id: "notes_1", metric: "notes", target: 1, reward: 20, icon: "file-plus" },
   { id: "notes_3", metric: "notes", target: 3, reward: 50, icon: "files" },

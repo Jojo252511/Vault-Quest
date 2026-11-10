@@ -7,7 +7,7 @@ Interface in English and German (follows Obsidian's language or can be set manua
 ## Features
 
 - **XP and levels:** every new word, note, link, tag and completed task earns XP. Your level and XP bar sit in the status bar at the bottom. Hover for details, click to open the achievements.
-- **Achievements:** 27 achievements in six categories (writing, structure, tasks, level, streaks, special) with four rarities. Each unlock shows a notification and grants bonus XP.
+- **Achievements:** 76 achievements in eight categories (writing, structure, tasks, level, streaks, time and calendar, quests, secret) with four rarities, defined in a JSON file. Each unlock shows a notification and grants bonus XP.
 - **Retroactive import:** on first start, Vault Quest scans your existing notes and unlocks everything you have already earned. Each note is dated by its `date`/`created` frontmatter, a `YYYY-MM-DD` date in the file name, or its creation time, so achievements, streaks and statistics get real dates.
 - **Daily quests:** three new quests every day (e.g. "Write 500 words", "Complete 3 tasks"). They only count what you do after they were issued.
 - **Streaks:** a day counts when you write at least 50 words (configurable).
@@ -81,11 +81,47 @@ For development, clone this repository directly into `<vault>/.obsidian/plugins/
 
 ### Adding achievements
 
-1. Add an entry to `ACHIEVEMENTS` in `src/core/achievements.ts` (unique `id`, Lucide icon name, rarity, category, reward, check).
-2. Add `ach.<id>.title` and `ach.<id>.desc` to `src/i18n/en.ts` and `src/i18n/de.ts`. A test fails if a translation is missing.
-3. Never rename or remove an existing `id`: it is stored in users' progress.
+All achievements live in [`src/data/achievements.json`](src/data/achievements.json). To add one, append an entry; no code changes are needed:
 
-After an update, Vault Quest checks new achievements retroactively against the stored day statistics on the next start, dates them correctly and only adds their reward XP. No re-import is needed.
+```json
+{
+  "id": "words_day_10000",
+  "category": "writing",
+  "rarity": "legendary",
+  "icon": "rocket",
+  "reward": 500,
+  "added": "0.3.0",
+  "condition": { "type": "day", "stat": "words", "min": 10000 },
+  "title": { "en": "Ultramarathon", "de": "Ultramarathon" },
+  "description": { "en": "Write 10,000 words in one day", "de": "Schreibe 10.000 Wörter an einem Tag" }
+}
+```
+
+| Field | Values |
+| --- | --- |
+| `category` | `writing`, `structure`, `tasks`, `level`, `streak`, `time`, `quests`, `special` (shown as "Secret") |
+| `rarity` | `common`, `rare`, `epic`, `legendary` |
+| `icon` | A [Lucide](https://lucide.dev/icons) icon name. Avoid recently renamed icons, older Obsidian versions don't know the new names. |
+| `reward` | Bonus XP on medium difficulty (scaled by the difficulty) |
+| `secret` | Optional `true`: shown as "???" until unlocked |
+
+Condition types:
+
+| `type` | Fields | Unlocks when |
+| --- | --- | --- |
+| `total` | `stat`, `min` | a lifetime counter reaches `min`. `stat`: `words`, `notesCreated`, `foldersCreated`, `links`, `tags`, `tasks`, `questsCompleted`, `questDays`, `nightWords`, `earlyWords`, `longestNote`, `maxLinksInNote`, `dailyNotes` |
+| `day` | `stat`, `min` | one day reaches `min`. `stat`: `words`, `notes`, `links`, `tags`, `tasks` |
+| `level` | `min` | the level reaches `min` |
+| `streak` | `min` | the best streak reaches `min` days |
+| `vaultNotes` | `min` | the vault contains `min` notes |
+| `activeDays` | `min` | words were written on `min` different days |
+| `date` | `month`, `day`, `weekdays` (all optional) | words are written on a matching day; `weekdays`: 0 = Sunday ... 6 = Saturday |
+| `comeback` | `gapDays` | writing again after at least `gapDays` days without writing |
+| `allQuestsToday` | | all daily quests of a day are done |
+
+Rules: never rename or remove an existing `id` (it is stored in users' progress), and set `added` to the version that ships the achievement. `npm test` validates every entry.
+
+After an update, Vault Quest checks new achievements retroactively on the next start against the stored day statistics and the notes in the vault, dates them correctly and only adds their reward XP. No re-import is needed.
 
 ## License
 
