@@ -5,13 +5,22 @@ import { FEATURES, addFeatures, type FeatureCounts } from "./features";
 import { levelInfo } from "./levels";
 import { emptyVaultStats, type VaultStats } from "./vault";
 import { markStreakDay } from "./streak";
-import { analyze, dayKey, isDailyNotePath } from "./text";
+import { analyze, dailyNoteDate, dayKey } from "./text";
 
 export interface ScannedNote {
   path: string;
   text: string;
   /** File creation time (ms), used when no better date is known. */
   ctime: number;
+  /**
+   * Date of the note if it is a daily note (YYYY-MM-DD), null if it is none. When missing,
+   * notes named YYYY-MM-DD.md anywhere in the vault count as daily notes.
+   */
+  dailyDate?: string | null;
+}
+
+function dailyDateOf(note: ScannedNote): string | null {
+  return note.dailyDate !== undefined ? note.dailyDate : dailyNoteDate(note.path);
 }
 
 export interface ImportResult {
@@ -35,15 +44,19 @@ function validDay(match: RegExpMatchArray | null | undefined): string | null {
 
 /**
  * Best guess for the day a note was written:
- * frontmatter `date`/`created` > a date in the file name > file creation time.
- * Dates in the future are clamped to today.
+ * daily note date > frontmatter `date`/`created` > a date in the file name > file creation time.
+ * Dates in the future are skipped (e.g. notes prepared in advance), so such a note falls back to
+ * the next candidate, at the latest its creation time.
  */
 export function noteDay(note: ScannedNote, today: string = dayKey()): string {
   const fm = note.text.match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1];
   const fromFm = fm ? validDay(fm.match(/^(?:date|created|erstellt)\s*:\s*["']?(\d{4})-(\d{2})-(\d{2})/m)) : null;
   const base = note.path.split("/").pop() ?? note.path;
-  const day = fromFm ?? validDay(base.match(ISO_DAY)) ?? dayKey(new Date(note.ctime));
-  return day > today ? today : day;
+  for (const candidate of [dailyDateOf(note), fromFm, validDay(base.match(ISO_DAY))]) {
+    if (candidate && candidate <= today) return candidate;
+  }
+  const created = dayKey(new Date(note.ctime));
+  return created > today ? today : created;
 }
 
 export function isExcluded(path: string, excluded: string[]): boolean {
@@ -81,7 +94,7 @@ export function collectNoteMeta(notes: ScannedNote[], today: string = dayKey()):
     addFeatures(m.features, c.features);
     m.longestNote = Math.max(m.longestNote, c.words);
     m.maxLinksInNote = Math.max(m.maxLinksInNote, c.links);
-    if (isDailyNotePath(note.path)) m.dailyNotes++;
+    if (dailyDateOf(note)) m.dailyNotes++;
     meta.set(key, m);
   }
   return meta;

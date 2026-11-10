@@ -69,10 +69,44 @@ export function analyze(text: string): NoteCounts {
   };
 }
 
-/** Daily notes are named exactly YYYY-MM-DD.md (the core Daily Notes default). */
-export function isDailyNotePath(path: string): boolean {
-  const base = path.split("/").pop() ?? path;
-  return /^\d{4}-\d{2}-\d{2}\.md$/.test(base);
+/** Where daily notes live and how they are named (from Obsidian's Daily Notes settings). */
+export interface DailyNoteConfig {
+  /** Folder of the daily notes, "" = whole vault. Subfolders are included. */
+  folder: string;
+  /** Moment.js format of the file name, e.g. "YYYY-MM-DD". Only the last path segment is used. */
+  format: string;
+}
+
+export const DEFAULT_DAILY_NOTE_CONFIG: DailyNoteConfig = { folder: "", format: "YYYY-MM-DD" };
+
+/** Parses a file name with a date format; returns YYYY-MM-DD or null. */
+export type DateParser = (name: string, format: string) => string | null;
+
+/** Fallback parser without moment.js: understands only the default format YYYY-MM-DD. */
+export const parseIsoDate: DateParser = (name, format) => {
+  if (format !== "YYYY-MM-DD") return null;
+  const m = name.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return null;
+  const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  const date = new Date(y, mo - 1, d);
+  return date.getMonth() === mo - 1 && date.getDate() === d ? m[0] : null;
+};
+
+/**
+ * Returns the date of a daily note (YYYY-MM-DD), or null if the path is not a daily note:
+ * it must be a Markdown file inside the configured folder whose name matches the format.
+ */
+export function dailyNoteDate(
+  path: string,
+  config: DailyNoteConfig = DEFAULT_DAILY_NOTE_CONFIG,
+  parse: DateParser = parseIsoDate,
+): string | null {
+  if (!path.toLowerCase().endsWith(".md")) return null;
+  const folder = config.folder.replace(/^\/+|\/+$/g, "");
+  if (folder && !path.startsWith(folder + "/")) return null;
+  const name = (path.split("/").pop() ?? path).replace(/\.md$/i, "");
+  const format = (config.format || DEFAULT_DAILY_NOTE_CONFIG.format).split("/").pop() ?? "YYYY-MM-DD";
+  return parse(name, format);
 }
 
 /** Local date as YYYY-MM-DD. */
