@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { levelInfo, xpForLevel } from "../src/core/levels";
-import { analyze, countCompletedTasks, countLinks, countTags, countWords, addDays } from "../src/core/text";
+import { analyze, countCompletedTasks, countLinks, countTags, countWords, addDays, dailyNoteDate } from "../src/core/text";
 import { newlyCompleted, pickQuests } from "../src/core/quests";
 import { displayedStreak, markStreakDay } from "../src/core/streak";
 import { backfillAchievements, importVault, isExcluded, noteDay, unknownAchievements } from "../src/core/importer";
@@ -98,7 +98,11 @@ describe("importer", () => {
     expect(noteDay({ path: "a.md", text: "---\ndate: 2026-03-04\n---\nx", ctime }, "2026-11-06")).toBe("2026-03-04");
     expect(noteDay({ path: "Daily/2026-05-10.md", text: "x", ctime }, "2026-11-06")).toBe("2026-05-10");
     expect(noteDay({ path: "a.md", text: "x", ctime }, "2026-11-06")).toBe("2026-01-15");
-    expect(noteDay({ path: "2030-01-01.md", text: "x", ctime }, "2026-11-06")).toBe("2026-11-06");
+    // dates in the future (prepared in advance) fall back to the creation time
+    expect(noteDay({ path: "2030-01-01.md", text: "x", ctime }, "2026-11-06")).toBe("2026-01-15");
+    expect(noteDay({ path: "a.md", text: "---\ndate: 2030-01-01\n---\nx", ctime: Date.UTC(2030, 0, 1) }, "2026-11-06")).toBe(
+      "2026-11-06",
+    );
   });
 
   it("excludes folders", () => {
@@ -398,5 +402,42 @@ describe("vault structure", () => {
     const vault = { ...emptyVaultStats(), notes: 1, folders: 4, maxSubfolders: 3 };
     importVault(p, [{ path: "a.md", text: "x", ctime: 0 }], 4, xpRules("medium"), 50, "2026-11-06", 1, vault);
     expect(p.unlocked.subfolders_3).toBeDefined();
+  });
+});
+
+describe("daily notes", () => {
+  const cfg = { folder: "05 Daily Notes", format: "YYYY-MM-DD" };
+
+  it("are recognised by folder and file name format", () => {
+    expect(dailyNoteDate("05 Daily Notes/2026/KW45/2026-11-06.md", cfg)).toBe("2026-11-06");
+    expect(dailyNoteDate("05 Daily Notes/2026-11-06.md", cfg)).toBe("2026-11-06");
+    // copies outside the daily notes folder
+    expect(dailyNoteDate("06 Archiv/Backup/05 Daily Notes/2026/KW45/2026-11-06.md", cfg)).toBeNull();
+    // other notes inside the folder
+    expect(dailyNoteDate("05 Daily Notes/2026/KW45/Wochenbericht.md", cfg)).toBeNull();
+    expect(dailyNoteDate("05 Daily Notes/Ausbildungsnachweisse/2026/KW45/2026-11-06 Freitag.md", cfg)).toBeNull();
+    expect(dailyNoteDate("05 Daily Notes/2026-02-30.md", cfg)).toBeNull();
+    // without a folder setting the whole vault counts
+    expect(dailyNoteDate("Journal/2026-11-06.md")).toBe("2026-11-06");
+  });
+
+  it("use the custom parser for other formats", () => {
+    const parse = (name: string, format: string) => (format === "DD.MM.YYYY" && name === "06.11.2026" ? "2026-11-06" : null);
+    expect(dailyNoteDate("Daily/06.11.2026.md", { folder: "Daily", format: "YYYY/DD.MM.YYYY" }, parse)).toBe("2026-11-06");
+  });
+
+  it("are dated by their file name, even if the frontmatter says otherwise", () => {
+    const note = { path: "05 Daily Notes/2026-06-05.md", text: "---\ndate: 2026-06-06\n---\nx", ctime: 0 };
+    expect(noteDay({ ...note, dailyDate: "2026-06-05" }, "2026-11-06")).toBe("2026-06-05");
+    expect(noteDay({ ...note, dailyDate: null, path: "Other.md" }, "2026-11-06")).toBe("2026-06-06");
+  });
+
+  it("are counted on import only where the scanner says so", () => {
+    const p = emptyProgress();
+    importVault(p, [
+      { path: "05 Daily Notes/2026-11-01.md", text: "x", ctime: 0, dailyDate: "2026-11-01" },
+      { path: "Archiv/05 Daily Notes/2026-11-01.md", text: "x", ctime: 0, dailyDate: null },
+    ], 0, xpRules("medium"), 50, "2026-11-06");
+    expect(p.totals.dailyNotes).toBe(1);
   });
 });

@@ -8,7 +8,8 @@ Interface in English and German (follows Obsidian's language or can be set manua
 
 - **XP and levels:** every new word, note, link, tag and completed task earns XP. Your level and XP bar sit in the status bar at the bottom. Hover for details, click to open the achievements.
 - **Achievements:** 113 achievements in nine categories (writing, structure, tasks, Markdown and Obsidian features, level, streaks, time and calendar, quests, secret) with four rarities, defined in a JSON file. Each unlock shows a notification and grants bonus XP.
-- **Retroactive import:** on first start, Vault Quest scans your existing notes and unlocks everything you have already earned. Each note is dated by its `date`/`created` frontmatter, a `YYYY-MM-DD` date in the file name, or its creation time, so achievements, streaks and statistics get real dates.
+- **Retroactive import:** on first start, Vault Quest scans your existing notes and unlocks everything you have already earned. Each note is dated by its daily note date, its `date`/`created` frontmatter, a `YYYY-MM-DD` date in the file name, or its creation time, so achievements, streaks and statistics get real dates. Dates in the future (notes prepared in advance) are skipped.
+- **Daily notes** are recognised with the folder and date format of Obsidian's Daily Notes settings; copies elsewhere in the vault don't count. Content a template inserts into a new note is not counted as written.
 - **Daily quests:** three new quests every day (e.g. "Write 500 words", "Complete 3 tasks"). They only count what you do after they were issued.
 - **Streaks:** a day counts when you write at least 50 words (configurable).
 - **Statistics:** totals, current and best streak, and a 14-day word chart.

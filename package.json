@@ -1,6 +1,6 @@
 {
   "name": "vault-quest",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Gamify your vault: earn XP, level up, unlock achievements and complete daily quests.",
   "main": "main.js",
   "type": "module",

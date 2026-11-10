@@ -5,6 +5,7 @@ import {
   TFile,
   TFolder,
   debounce,
+  moment,
   setTooltip,
   type Debouncer,
   type Editor,
@@ -24,7 +25,14 @@ import { newlyCompleted, pickQuests } from "./core/quests";
 import { Sounds } from "./core/sounds";
 import { seal, unseal } from "./core/store";
 import { displayedStreak, markStreakDay } from "./core/streak";
-import { analyze, dayKey, isDailyNotePath } from "./core/text";
+import {
+  DEFAULT_DAILY_NOTE_CONFIG,
+  analyze,
+  dailyNoteDate,
+  dayKey,
+  type DailyNoteConfig,
+  type DateParser,
+} from "./core/text";
 import { FEATURES, emptyFeatures, maxFeatures, type FeatureCounts } from "./core/features";
 import { computeVaultStats, type VaultStats } from "./core/vault";
 import { emptyDay, emptyProgress, mergeProgress, mergeSettings } from "./defaults";
@@ -33,6 +41,20 @@ import type { DayStats, NoteCounts, Progress, Settings, StoredData } from "./typ
 import { QuestModal, achievementDesc, achievementTitle, questLabel, type Tab } from "./ui/modal";
 import { VaultQuestSettingTab } from "./ui/settings";
 import { Toasts } from "./ui/toasts";
+
+/** Content that appears this soon after a note was created comes from a template. */
+const FRESH_NOTE_MS = 3000;
+
+/** Obsidian ships moment.js; its typings expose it as a namespace, so call it through a narrow type. */
+type MomentFn = (input: string, format: string, strict: boolean) => {
+  isValid(): boolean;
+  format(format: string): string;
+};
+
+const parseWithMoment: DateParser = (name, format) => {
+  const m = (moment as unknown as MomentFn)(name, format, true);
+  return m.isValid() ? m.format("YYYY-MM-DD") : null;
+};
 
 type Gain = Partial<Pick<DayStats, "words" | "notes" | "links" | "tags" | "tasks">>;
 
@@ -52,6 +74,8 @@ export default class VaultQuestPlugin extends Plugin {
   /** Cached vault structure, refreshed when files or folders change. */
   private vaultStats!: VaultStats;
   private requestVaultRefresh!: Debouncer<[], void>;
+  /** Notes created in the last seconds: their first content (e.g. a template) is not counted as written. */
+  private fresh = new Map<string, number>();
 
   async onload(): Promise<void> {
     const tampered = await this.loadAll();
@@ -195,6 +219,29 @@ export default class VaultQuestPlugin extends Plugin {
       .filter((f) => !this.excluded(f.path) && !(f instanceof TFolder && f.isRoot()))
       .map((f) => ({ path: f.path, isFolder: f instanceof TFolder }));
     this.vaultStats = computeVaultStats(entries);
+    // "have N daily notes" always reflects the vault as it is, which also repairs older counts
+    const config = this.dailyNoteConfig();
+    if (this.progress) {
+      this.progress.totals.dailyNotes = entries.filter(
+        (e) => !e.isFolder && dailyNoteDate(e.path, config, parseWithMoment) !== null,
+      ).length;
+    }
+  }
+
+  /** Folder and file name format from Obsidian's core Daily Notes plugin. */
+  private dailyNoteConfig(): DailyNoteConfig {
+    const plugins = (this.app as unknown as {
+      internalPlugins?: { getPluginById?: (id: string) => { instance?: { options?: Partial<DailyNoteConfig> } } };
+    }).internalPlugins;
+    const options = plugins?.getPluginById?.("daily-notes")?.instance?.options ?? {};
+    return {
+      folder: (options.folder ?? DEFAULT_DAILY_NOTE_CONFIG.folder).trim(),
+      format: options.format?.trim() || DEFAULT_DAILY_NOTE_CONFIG.format,
+    };
+  }
+
+  private dailyDateOf(path: string): string | null {
+    return dailyNoteDate(path, this.dailyNoteConfig(), parseWithMoment);
   }
 
   /** Reads every non-excluded note of the vault. */
@@ -202,7 +249,12 @@ export default class VaultQuestPlugin extends Plugin {
     const notes: ScannedNote[] = [];
     for (const file of this.app.vault.getMarkdownFiles()) {
       if (this.excluded(file.path)) continue;
-      notes.push({ path: file.path, text: await this.app.vault.cachedRead(file), ctime: file.stat.ctime });
+      notes.push({
+        path: file.path,
+        text: await this.app.vault.cachedRead(file),
+        ctime: file.stat.ctime,
+        dailyDate: this.dailyDateOf(file.path),
+      });
     }
     return notes;
   }
@@ -309,14 +361,24 @@ export default class VaultQuestPlugin extends Plugin {
       this.afterChange(0, false);
       return;
     }
+    // content written by the creator (Daily Notes, Templates, Templater) is not the user's typing:
+    // start from what the file contains now and ignore further content for a few seconds
     this.seen.set(file.path, { words: 0, links: 0, tags: 0, tasks: 0, features: emptyFeatures() });
-    if (isDailyNotePath(file.path)) this.progress.totals.dailyNotes++;
+    this.fresh.set(file.path, Date.now());
+    void this.app.vault.cachedRead(file).then((text) => this.seedCounts(file.path, analyze(text)));
     this.award({ notes: 1 });
   }
 
   private measure(path: string, text: string): void {
     const now = analyze(text);
     const prev = this.seen.get(path);
+    const created = this.fresh.get(path);
+    if (created !== undefined && Date.now() - created < FRESH_NOTE_MS) {
+      // template content arriving right after creation
+      this.seedCounts(path, now);
+      return;
+    }
+    this.fresh.delete(path);
     if (!prev) {
       this.seen.set(path, now);
       return;
