@@ -25,6 +25,8 @@ import { Sounds } from "./core/sounds";
 import { seal, unseal } from "./core/store";
 import { displayedStreak, markStreakDay } from "./core/streak";
 import { analyze, dayKey, isDailyNotePath } from "./core/text";
+import { FEATURES, emptyFeatures, maxFeatures, type FeatureCounts } from "./core/features";
+import { computeVaultStats, type VaultStats } from "./core/vault";
 import { emptyDay, emptyProgress, mergeProgress, mergeSettings } from "./defaults";
 import { formatNumber, setLanguage, t } from "./i18n";
 import type { DayStats, NoteCounts, Progress, Settings, StoredData } from "./types";
@@ -47,6 +49,9 @@ export default class VaultQuestPlugin extends Plugin {
   private seen = new Map<string, NoteCounts>();
   private editTimers = new Map<string, number>();
   private requestSave!: Debouncer<[], void>;
+  /** Cached vault structure, refreshed when files or folders change. */
+  private vaultStats!: VaultStats;
+  private requestVaultRefresh!: Debouncer<[], void>;
 
   async onload(): Promise<void> {
     const tampered = await this.loadAll();
@@ -55,6 +60,14 @@ export default class VaultQuestPlugin extends Plugin {
     this.sounds = new Sounds(() => this.settings);
     this.toasts = new Toasts();
     this.requestSave = debounce(() => void this.saveAll(), 1000, true);
+    this.requestVaultRefresh = debounce(
+      () => {
+        this.refreshVaultStats();
+        if (this.ready) this.afterChange(0, false);
+      },
+      1000,
+      true,
+    );
 
     // status bar: level pill + XP bar, click opens achievements
     this.statusEl = this.addStatusBarItem();
@@ -72,6 +85,7 @@ export default class VaultQuestPlugin extends Plugin {
 
     this.app.workspace.onLayoutReady(async () => {
       if (tampered) new Notice(t("import.tampered"), 10_000);
+      this.refreshVaultStats();
       if (!this.progress.importedAt) await this.runImport();
       await this.backfillNewAchievements();
       this.ensureQuests();
@@ -84,6 +98,8 @@ export default class VaultQuestPlugin extends Plugin {
       this.registerEvent(this.app.workspace.on("file-open", (file) => file && void this.seedFile(file)));
       this.registerEvent(this.app.vault.on("modify", (file) => this.onModify(file)));
       this.registerEvent(this.app.vault.on("create", (file) => this.onCreate(file)));
+      this.registerEvent(this.app.vault.on("delete", () => this.requestVaultRefresh()));
+      this.registerEvent(this.app.vault.on("rename", () => this.requestVaultRefresh()));
       this.registerEvent(
         this.app.vault.on("rename", (file, oldPath) => {
           const counts = this.seen.get(oldPath);
@@ -152,6 +168,7 @@ export default class VaultQuestPlugin extends Plugin {
         streakMinWords(this.settings.difficulty),
         undefined,
         this.settings.importXpPercent / 100,
+        this.vaultStats,
       );
       await this.saveAll();
       new Notice(
@@ -172,6 +189,14 @@ export default class VaultQuestPlugin extends Plugin {
   }
 
   /** Achievements added by a plugin update are checked retroactively against the stored statistics. */
+  private refreshVaultStats(): void {
+    const entries = this.app.vault
+      .getAllLoadedFiles()
+      .filter((f) => !this.excluded(f.path) && !(f instanceof TFolder && f.isRoot()))
+      .map((f) => ({ path: f.path, isFolder: f instanceof TFolder }));
+    this.vaultStats = computeVaultStats(entries);
+  }
+
   /** Reads every non-excluded note of the vault. */
   private async scanNotes(): Promise<ScannedNote[]> {
     const notes: ScannedNote[] = [];
@@ -193,7 +218,7 @@ export default class VaultQuestPlugin extends Plugin {
       ids,
       xpRules(this.settings.difficulty),
       streakMinWords(this.settings.difficulty),
-      notes.length,
+      this.vaultStats,
       undefined,
       notes,
     );
@@ -271,14 +296,20 @@ export default class VaultQuestPlugin extends Plugin {
 
   private onCreate(file: unknown): void {
     if (!this.ready || this.importing) return;
+    this.refreshVaultStats();
     if (file instanceof TFolder) {
       if (this.excluded(file.path)) return;
       this.progress.totals.foldersCreated++;
       this.afterChange(0, false);
       return;
     }
-    if (!(file instanceof TFile) || file.extension !== "md" || this.excluded(file.path)) return;
-    this.seen.set(file.path, { words: 0, links: 0, tags: 0, tasks: 0 });
+    if (!(file instanceof TFile) || this.excluded(file.path)) return;
+    if (file.extension !== "md") {
+      // attachments, canvases, bases: only the vault structure changed
+      this.afterChange(0, false);
+      return;
+    }
+    this.seen.set(file.path, { words: 0, links: 0, tags: 0, tasks: 0, features: emptyFeatures() });
     if (isDailyNotePath(file.path)) this.progress.totals.dailyNotes++;
     this.award({ notes: 1 });
   }
@@ -300,7 +331,22 @@ export default class VaultQuestPlugin extends Plugin {
       tags: Math.max(0, now.tags - prev.tags),
       tasks: Math.max(0, now.tasks - prev.tasks),
     };
+    const featureGain = this.addFeatureGain(prev.features, now.features);
     if (gain.words || gain.links || gain.tags || gain.tasks) this.award(gain);
+    else if (featureGain) this.afterChange(0, false);
+  }
+
+  /** Adds newly used Markdown features to the lifetime counts. Returns true if any were added. */
+  private addFeatureGain(prev: FeatureCounts, now: FeatureCounts): boolean {
+    let any = false;
+    for (const k of FEATURES) {
+      const diff = (now[k] ?? 0) - (prev[k] ?? 0);
+      if (diff > 0) {
+        this.progress.features[k] = (this.progress.features[k] ?? 0) + diff;
+        any = true;
+      }
+    }
+    return any;
   }
 
   // ------------------------------------------------------------------ rules
@@ -405,10 +451,9 @@ export default class VaultQuestPlugin extends Plugin {
   }
 
   private checkAchievements(): void {
-    const files = this.app.vault.getMarkdownFiles().filter((f) => !this.excluded(f.path)).length;
     // rewards can unlock level achievements, so resolve until stable
     for (let guard = 0; guard < 10; guard++) {
-      const earned = newlyEarned(buildContext(this.progress, files));
+      const earned = newlyEarned(buildContext(this.progress, this.vaultStats));
       if (earned.length === 0) break;
       for (const a of earned) {
         const reward = scaledReward(a.reward, this.settings.difficulty);
@@ -489,5 +534,6 @@ function maxCounts(a: NoteCounts, b: NoteCounts): NoteCounts {
     links: Math.max(a.links, b.links),
     tags: Math.max(a.tags, b.tags),
     tasks: Math.max(a.tasks, b.tasks),
+    features: maxFeatures(a.features, b.features),
   };
 }

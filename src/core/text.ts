@@ -1,4 +1,5 @@
 import type { NoteCounts } from "../types";
+import { countFeatures } from "./features";
 
 const FRONTMATTER = /^---\r?\n[\s\S]*?\r?\n---(?:\r?\n|$)/;
 const FENCED_CODE = /```[\s\S]*?```|~~~[\s\S]*?~~~/g;
@@ -17,7 +18,9 @@ export function stripNonProse(text: string): string {
 /** Counts words (any run of letters/digits, including umlauts and other scripts). */
 export function countWords(text: string): number {
   const prose = stripNonProse(text)
-    // link targets and URLs are not words the user wrote
+    // embeds, link targets and URLs are not words the user wrote
+    .replace(/!\[\[[^\]]*\]\]/g, " ")
+    .replace(/!\[[^\]\n]*\]\([^)]*\)/g, " ")
     .replace(/\]\([^)]*\)/g, "]")
     // task checkboxes like "- [x]"
     .replace(/^(\s*(?:[-*+]|\d+[.)])\s+)\[.\]/gm, "$1")
@@ -62,6 +65,7 @@ export function analyze(text: string): NoteCounts {
     links: countLinks(text),
     tags: countTags(text),
     tasks: countCompletedTasks(text),
+    features: countFeatures(text),
   };
 }
 

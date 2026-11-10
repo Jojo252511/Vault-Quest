@@ -29,6 +29,7 @@ export const en = {
   "category.writing": "Writing",
   "category.structure": "Structure",
   "category.tasks": "Tasks",
+  "category.features": "Markdown and Obsidian",
   "category.level": "Level",
   "category.streak": "Streaks",
   "category.time": "Time and calendar",

@@ -1,3 +1,5 @@
+import type { FeatureCounts } from "./core/features";
+
 export type Language = "auto" | "en" | "de";
 
 export type Difficulty = "easy" | "medium" | "hard" | "veryHard" | "hardcore";
@@ -94,6 +96,8 @@ export interface Progress {
    * plugin update are missing here and get checked retroactively on the next start.
    */
   knownAchievements: string[] | null;
+  /** Lifetime counts of Markdown features added to notes (images, code blocks, ...). */
+  features: Partial<FeatureCounts>;
 }
 
 /** Shape of data.json: settings in plain text, progress sealed (see core/store.ts). */
@@ -108,4 +112,5 @@ export interface NoteCounts {
   links: number;
   tags: number;
   tasks: number;
+  features: FeatureCounts;
 }

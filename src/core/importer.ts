@@ -1,7 +1,9 @@
 import type { DayStats, Progress, XpRules } from "../types";
 import { emptyDay, emptyProgress } from "../defaults";
 import { ACHIEVEMENTS, evaluate, type AchievementContext } from "./achievements";
+import { FEATURES, addFeatures, type FeatureCounts } from "./features";
 import { levelInfo } from "./levels";
+import { emptyVaultStats, type VaultStats } from "./vault";
 import { markStreakDay } from "./streak";
 import { analyze, dayKey, isDailyNotePath } from "./text";
 
@@ -66,6 +68,7 @@ interface DayMeta {
   longestNote: number;
   maxLinksInNote: number;
   dailyNotes: number;
+  features: Partial<FeatureCounts>;
 }
 
 /** Groups the per-note facts by the day each note is attributed to. */
@@ -74,7 +77,8 @@ export function collectNoteMeta(notes: ScannedNote[], today: string = dayKey()):
   for (const note of notes) {
     const key = noteDay(note, today);
     const c = analyze(note.text);
-    const m = meta.get(key) ?? { longestNote: 0, maxLinksInNote: 0, dailyNotes: 0 };
+    const m = meta.get(key) ?? { longestNote: 0, maxLinksInNote: 0, dailyNotes: 0, features: {} };
+    addFeatures(m.features, c.features);
     m.longestNote = Math.max(m.longestNote, c.words);
     m.maxLinksInNote = Math.max(m.maxLinksInNote, c.links);
     if (isDailyNotePath(note.path)) m.dailyNotes++;
@@ -83,8 +87,10 @@ export function collectNoteMeta(notes: ScannedNote[], today: string = dayKey()):
   return meta;
 }
 
-function applyMeta(totals: Progress["totals"], m: DayMeta | undefined): void {
+function applyMeta(target: Progress, m: DayMeta | undefined): void {
   if (!m) return;
+  const totals = target.totals;
+  addFeatures(target.features, m.features);
   totals.longestNote = Math.max(totals.longestNote, m.longestNote);
   totals.maxLinksInNote = Math.max(totals.maxLinksInNote, m.maxLinksInNote);
   totals.dailyNotes += m.dailyNotes;
@@ -109,6 +115,7 @@ export function importVault(
   streakMinWords: number,
   today: string = dayKey(),
   xpFactor = 1,
+  vault: VaultStats = emptyVaultStats(),
 ): ImportResult {
   const levelBefore = levelInfo(progress.xp).level;
 
@@ -135,13 +142,14 @@ export function importVault(
   const sim = emptyProgress();
   const unlockedAt: Record<string, number> = {};
   let noteCount = 0;
-  const check = (dayStats: DayStats, key: string) => {
+  const check = (dayStats: DayStats, key: string, vaultNow: VaultStats = emptyVaultStats()) => {
     const ctx: AchievementContext = {
       progress: sim,
       level: levelInfo(sim.xp).level,
       dayKey: key,
       day: dayStats,
       noteCount,
+      vault: vaultNow,
     };
     // loop because achievement rewards can lift the level and unlock level achievements
     for (let guard = 0; guard < 10; guard++) {
@@ -161,7 +169,7 @@ export function importVault(
   for (const key of [...days.keys()].sort()) {
     const day = days.get(key)!;
     sim.days[key] = day;
-    applyMeta(sim.totals, meta.get(key));
+    applyMeta(sim, meta.get(key));
     sim.xp += day.xp;
     sim.totals.words += day.words;
     sim.totals.notesCreated += day.notes;
@@ -174,7 +182,7 @@ export function importVault(
   }
   // folders have no reliable date, they count from today
   sim.totals.foldersCreated += folderCount;
-  check(days.get(today) ?? emptyDay(), today);
+  check(days.get(today) ?? emptyDay(), today, vault);
 
   // 3. merge into the real progress
   progress.xp += sim.xp;
@@ -182,6 +190,7 @@ export function importVault(
     if (k === "longestNote" || k === "maxLinksInNote") progress.totals[k] = Math.max(progress.totals[k], sim.totals[k]);
     else progress.totals[k] += sim.totals[k];
   }
+  addFeatures(progress.features, sim.features);
   for (const [key, day] of days) {
     const existing = progress.days[key] ?? emptyDay();
     for (const k of Object.keys(day) as (keyof DayStats)[]) existing[k] += day[k];
@@ -231,19 +240,23 @@ export function backfillAchievements(
   ids: string[],
   rules: XpRules,
   streakMinWords: number,
-  noteCount: number,
+  vault: VaultStats,
   today: string = dayKey(),
   notes?: ScannedNote[],
 ): string[] {
   const meta = notes ? collectNoteMeta(notes, today) : new Map<string, DayMeta>();
   if (notes) {
     // stats introduced after the import: take them from the vault as it is now
-    const scanned = { longestNote: 0, maxLinksInNote: 0, dailyNotes: 0 } as Progress["totals"];
+    const scanned = emptyProgress();
     for (const m of meta.values()) applyMeta(scanned, m);
     const t = progress.totals;
-    t.longestNote = Math.max(t.longestNote, scanned.longestNote);
-    t.maxLinksInNote = Math.max(t.maxLinksInNote, scanned.maxLinksInNote);
-    t.dailyNotes = Math.max(t.dailyNotes, scanned.dailyNotes);
+    t.longestNote = Math.max(t.longestNote, scanned.totals.longestNote);
+    t.maxLinksInNote = Math.max(t.maxLinksInNote, scanned.totals.maxLinksInNote);
+    t.dailyNotes = Math.max(t.dailyNotes, scanned.totals.dailyNotes);
+    for (const k of FEATURES) {
+      const v = Math.max(progress.features[k] ?? 0, scanned.features[k] ?? 0);
+      if (v > 0) progress.features[k] = v;
+    }
   }
   const targets = ACHIEVEMENTS.filter((a) => ids.includes(a.id) && !progress.unlocked[a.id]);
   const unlocked: string[] = [];
@@ -263,7 +276,7 @@ export function backfillAchievements(
       if (key > today) continue;
       const day = progress.days[key];
       sim.days[key] = day;
-      applyMeta(sim.totals, meta.get(key));
+      applyMeta(sim, meta.get(key));
       sim.xp += day.xp;
       sim.totals.words += day.words;
       sim.totals.notesCreated += day.notes;
@@ -272,7 +285,10 @@ export function backfillAchievements(
       sim.totals.tasks += day.tasks;
       notes += day.notes;
       if (day.words >= streakMinWords) markStreakDay(sim.streak, key);
-      check({ progress: sim, level: levelInfo(sim.xp).level, dayKey: key, day, noteCount: notes }, dayTimestamp(key));
+      check(
+        { progress: sim, level: levelInfo(sim.xp).level, dayKey: key, day, noteCount: notes, vault: emptyVaultStats() },
+        dayTimestamp(key),
+      );
     }
     // everything without history, against the real current state
     check(
@@ -281,7 +297,8 @@ export function backfillAchievements(
         level: levelInfo(progress.xp).level,
         dayKey: today,
         day: progress.days[today] ?? emptyDay(),
-        noteCount,
+        noteCount: vault.notes,
+        vault,
       },
       Date.now(),
     );

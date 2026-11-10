@@ -669,6 +669,195 @@
       }
     },
     {
+      "id": "subfolders_3",
+      "category": "structure",
+      "rarity": "common",
+      "icon": "split",
+      "reward": 15,
+      "added": "0.3.0",
+      "condition": {
+        "type": "vault",
+        "stat": "maxSubfolders",
+        "min": 3
+      },
+      "title": {
+        "en": "Branching Out",
+        "de": "Verzweigt"
+      },
+      "description": {
+        "en": "Have 3 folders inside one folder",
+        "de": "Habe 3 Ordner in einem Ordner"
+      }
+    },
+    {
+      "id": "subfolders_10",
+      "category": "structure",
+      "rarity": "rare",
+      "icon": "trees",
+      "reward": 50,
+      "added": "0.3.0",
+      "condition": {
+        "type": "vault",
+        "stat": "maxSubfolders",
+        "min": 10
+      },
+      "title": {
+        "en": "Canopy",
+        "de": "Baumkrone"
+      },
+      "description": {
+        "en": "Have 10 folders inside one folder",
+        "de": "Habe 10 Ordner in einem Ordner"
+      }
+    },
+    {
+      "id": "folder_depth_5",
+      "category": "structure",
+      "rarity": "rare",
+      "icon": "arrow-down-to-line",
+      "reward": 50,
+      "added": "0.3.0",
+      "condition": {
+        "type": "vault",
+        "stat": "maxFolderDepth",
+        "min": 5
+      },
+      "title": {
+        "en": "Deep Dive",
+        "de": "Tiefgang"
+      },
+      "description": {
+        "en": "Nest folders 5 levels deep",
+        "de": "Verschachtele Ordner 5 Ebenen tief"
+      }
+    },
+    {
+      "id": "folder_notes_50",
+      "category": "structure",
+      "rarity": "rare",
+      "icon": "folder-open",
+      "reward": 50,
+      "added": "0.3.0",
+      "condition": {
+        "type": "vault",
+        "stat": "maxNotesInFolder",
+        "min": 50
+      },
+      "title": {
+        "en": "Packed",
+        "de": "Prall gefüllt"
+      },
+      "description": {
+        "en": "Have a folder with 50 notes",
+        "de": "Habe einen Ordner mit 50 Notizen"
+      }
+    },
+    {
+      "id": "attachments_10",
+      "category": "structure",
+      "rarity": "common",
+      "icon": "paperclip",
+      "reward": 15,
+      "added": "0.3.0",
+      "condition": {
+        "type": "vault",
+        "stat": "attachments",
+        "min": 10
+      },
+      "title": {
+        "en": "Attached",
+        "de": "Anhängsel"
+      },
+      "description": {
+        "en": "Have 10 attachments in your vault",
+        "de": "Habe 10 Anhänge im Vault"
+      }
+    },
+    {
+      "id": "attachments_100",
+      "category": "structure",
+      "rarity": "rare",
+      "icon": "archive",
+      "reward": 75,
+      "added": "0.3.0",
+      "condition": {
+        "type": "vault",
+        "stat": "attachments",
+        "min": 100
+      },
+      "title": {
+        "en": "Filing Cabinet",
+        "de": "Archivschrank"
+      },
+      "description": {
+        "en": "Have 100 attachments in your vault",
+        "de": "Habe 100 Anhänge im Vault"
+      }
+    },
+    {
+      "id": "first_canvas",
+      "category": "structure",
+      "rarity": "common",
+      "icon": "layout-dashboard",
+      "reward": 15,
+      "added": "0.3.0",
+      "condition": {
+        "type": "vault",
+        "stat": "canvases",
+        "min": 1
+      },
+      "title": {
+        "en": "Canvas",
+        "de": "Leinwand"
+      },
+      "description": {
+        "en": "Create a canvas",
+        "de": "Lege ein Canvas an"
+      }
+    },
+    {
+      "id": "first_base",
+      "category": "structure",
+      "rarity": "common",
+      "icon": "table-2",
+      "reward": 15,
+      "added": "0.3.0",
+      "condition": {
+        "type": "vault",
+        "stat": "bases",
+        "min": 1
+      },
+      "title": {
+        "en": "Base Builder",
+        "de": "Datenbankarchitekt"
+      },
+      "description": {
+        "en": "Create a base",
+        "de": "Lege eine Base an"
+      }
+    },
+    {
+      "id": "first_drawing",
+      "category": "structure",
+      "rarity": "common",
+      "icon": "pen-tool",
+      "reward": 15,
+      "added": "0.3.0",
+      "condition": {
+        "type": "vault",
+        "stat": "drawings",
+        "min": 1
+      },
+      "title": {
+        "en": "Sketch Artist",
+        "de": "Skizzenkünstler"
+      },
+      "description": {
+        "en": "Create an Excalidraw drawing",
+        "de": "Lege eine Excalidraw-Zeichnung an"
+      }
+    },
+    {
       "id": "first_task",
       "category": "tasks",
       "rarity": "common",
@@ -834,6 +1023,594 @@
       "description": {
         "en": "Complete 25 tasks in one day",
         "de": "Erledige 25 Aufgaben an einem Tag"
+      }
+    },
+    {
+      "id": "first_image",
+      "category": "features",
+      "rarity": "common",
+      "icon": "image",
+      "reward": 10,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "images",
+        "min": 1
+      },
+      "title": {
+        "en": "Worth a Thousand Words",
+        "de": "Ein Bild sagt mehr"
+      },
+      "description": {
+        "en": "Insert an image into a note",
+        "de": "Füge ein Bild in eine Notiz ein"
+      }
+    },
+    {
+      "id": "images_50",
+      "category": "features",
+      "rarity": "rare",
+      "icon": "images",
+      "reward": 100,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "images",
+        "min": 50
+      },
+      "title": {
+        "en": "Gallery",
+        "de": "Galerie"
+      },
+      "description": {
+        "en": "Insert 50 images",
+        "de": "Füge 50 Bilder ein"
+      }
+    },
+    {
+      "id": "first_code_block",
+      "category": "features",
+      "rarity": "common",
+      "icon": "code",
+      "reward": 10,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "codeBlocks",
+        "min": 1
+      },
+      "title": {
+        "en": "Hello World",
+        "de": "Hello World"
+      },
+      "description": {
+        "en": "Insert a code block",
+        "de": "Füge einen Codeblock ein"
+      }
+    },
+    {
+      "id": "code_blocks_100",
+      "category": "features",
+      "rarity": "rare",
+      "icon": "terminal",
+      "reward": 100,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "codeBlocks",
+        "min": 100
+      },
+      "title": {
+        "en": "Developer",
+        "de": "Entwickler"
+      },
+      "description": {
+        "en": "Insert 100 code blocks",
+        "de": "Füge 100 Codeblöcke ein"
+      }
+    },
+    {
+      "id": "code_blocks_1000",
+      "category": "features",
+      "rarity": "epic",
+      "icon": "file-code",
+      "reward": 300,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "codeBlocks",
+        "min": 1000
+      },
+      "title": {
+        "en": "Code Library",
+        "de": "Code-Bibliothek"
+      },
+      "description": {
+        "en": "Insert 1,000 code blocks",
+        "de": "Füge 1.000 Codeblöcke ein"
+      }
+    },
+    {
+      "id": "first_mermaid",
+      "category": "features",
+      "rarity": "rare",
+      "icon": "workflow",
+      "reward": 25,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "mermaid",
+        "min": 1
+      },
+      "title": {
+        "en": "Diagrammer",
+        "de": "Diagrammzeichner"
+      },
+      "description": {
+        "en": "Draw a Mermaid diagram",
+        "de": "Zeichne ein Mermaid-Diagramm"
+      }
+    },
+    {
+      "id": "first_dataview",
+      "category": "features",
+      "rarity": "rare",
+      "icon": "search-code",
+      "reward": 25,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "dataview",
+        "min": 1
+      },
+      "title": {
+        "en": "Query Master",
+        "de": "Datenabfrage"
+      },
+      "description": {
+        "en": "Write a Dataview query",
+        "de": "Schreibe eine Dataview-Abfrage"
+      }
+    },
+    {
+      "id": "first_callout",
+      "category": "features",
+      "rarity": "common",
+      "icon": "megaphone",
+      "reward": 10,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "callouts",
+        "min": 1
+      },
+      "title": {
+        "en": "Heads Up",
+        "de": "Achtung!"
+      },
+      "description": {
+        "en": "Insert a callout",
+        "de": "Füge ein Callout ein"
+      }
+    },
+    {
+      "id": "callouts_100",
+      "category": "features",
+      "rarity": "rare",
+      "icon": "message-square",
+      "reward": 100,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "callouts",
+        "min": 100
+      },
+      "title": {
+        "en": "Callout Connoisseur",
+        "de": "Infobox-Profi"
+      },
+      "description": {
+        "en": "Insert 100 callouts",
+        "de": "Füge 100 Callouts ein"
+      }
+    },
+    {
+      "id": "first_table",
+      "category": "features",
+      "rarity": "common",
+      "icon": "table",
+      "reward": 10,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "tables",
+        "min": 1
+      },
+      "title": {
+        "en": "Tabulated",
+        "de": "Tabellarisch"
+      },
+      "description": {
+        "en": "Insert a table",
+        "de": "Füge eine Tabelle ein"
+      }
+    },
+    {
+      "id": "tables_100",
+      "category": "features",
+      "rarity": "rare",
+      "icon": "sheet",
+      "reward": 100,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "tables",
+        "min": 100
+      },
+      "title": {
+        "en": "Spreadsheet Mind",
+        "de": "Tabellenkalkulation"
+      },
+      "description": {
+        "en": "Insert 100 tables",
+        "de": "Füge 100 Tabellen ein"
+      }
+    },
+    {
+      "id": "first_math",
+      "category": "features",
+      "rarity": "rare",
+      "icon": "sigma",
+      "reward": 25,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "math",
+        "min": 1
+      },
+      "title": {
+        "en": "Mathematician",
+        "de": "Mathematiker"
+      },
+      "description": {
+        "en": "Write a math block",
+        "de": "Schreibe einen Mathe-Block"
+      }
+    },
+    {
+      "id": "first_footnote",
+      "category": "features",
+      "rarity": "common",
+      "icon": "asterisk",
+      "reward": 10,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "footnotes",
+        "min": 1
+      },
+      "title": {
+        "en": "Footnote",
+        "de": "Fußnote"
+      },
+      "description": {
+        "en": "Add a footnote",
+        "de": "Füge eine Fußnote hinzu"
+      }
+    },
+    {
+      "id": "first_note_embed",
+      "category": "features",
+      "rarity": "rare",
+      "icon": "copy",
+      "reward": 25,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "noteEmbeds",
+        "min": 1
+      },
+      "title": {
+        "en": "Transclusion",
+        "de": "Eingebettet"
+      },
+      "description": {
+        "en": "Embed a note in another note",
+        "de": "Bette eine Notiz in eine andere ein"
+      }
+    },
+    {
+      "id": "first_pdf",
+      "category": "features",
+      "rarity": "common",
+      "icon": "file",
+      "reward": 15,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "pdfEmbeds",
+        "min": 1
+      },
+      "title": {
+        "en": "Paperwork",
+        "de": "Papierkram"
+      },
+      "description": {
+        "en": "Embed a PDF",
+        "de": "Bette ein PDF ein"
+      }
+    },
+    {
+      "id": "first_media",
+      "category": "features",
+      "rarity": "rare",
+      "icon": "music",
+      "reward": 25,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "mediaEmbeds",
+        "min": 1
+      },
+      "title": {
+        "en": "Multimedia",
+        "de": "Multimedia"
+      },
+      "description": {
+        "en": "Embed audio or video",
+        "de": "Bette Audio oder Video ein"
+      }
+    },
+    {
+      "id": "headings_100",
+      "category": "features",
+      "rarity": "common",
+      "icon": "heading",
+      "reward": 20,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "headings",
+        "min": 100
+      },
+      "title": {
+        "en": "Well Structured",
+        "de": "Gut gegliedert"
+      },
+      "description": {
+        "en": "Write 100 headings",
+        "de": "Schreibe 100 Überschriften"
+      }
+    },
+    {
+      "id": "headings_1000",
+      "category": "features",
+      "rarity": "rare",
+      "icon": "list-tree",
+      "reward": 100,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "headings",
+        "min": 1000
+      },
+      "title": {
+        "en": "Table of Contents",
+        "de": "Inhaltsverzeichnis"
+      },
+      "description": {
+        "en": "Write 1,000 headings",
+        "de": "Schreibe 1.000 Überschriften"
+      }
+    },
+    {
+      "id": "first_highlight",
+      "category": "features",
+      "rarity": "common",
+      "icon": "highlighter",
+      "reward": 10,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "highlights",
+        "min": 1
+      },
+      "title": {
+        "en": "Highlighter",
+        "de": "Textmarker"
+      },
+      "description": {
+        "en": "Highlight text with ==…==",
+        "de": "Markiere Text mit ==…=="
+      }
+    },
+    {
+      "id": "first_strikethrough",
+      "category": "features",
+      "rarity": "common",
+      "icon": "strikethrough",
+      "reward": 10,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "strikethrough",
+        "min": 1
+      },
+      "title": {
+        "en": "Proofreader",
+        "de": "Korrekturleser"
+      },
+      "description": {
+        "en": "Strike text through with ~~…~~",
+        "de": "Streiche Text mit ~~…~~ durch"
+      }
+    },
+    {
+      "id": "first_deep_link",
+      "category": "features",
+      "rarity": "common",
+      "icon": "crosshair",
+      "reward": 15,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "deepLinks",
+        "min": 1
+      },
+      "title": {
+        "en": "Pinpoint",
+        "de": "Punktlandung"
+      },
+      "description": {
+        "en": "Link to a heading or block",
+        "de": "Verlinke auf eine Überschrift oder einen Block"
+      }
+    },
+    {
+      "id": "deep_links_100",
+      "category": "features",
+      "rarity": "rare",
+      "icon": "locate",
+      "reward": 100,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "deepLinks",
+        "min": 100
+      },
+      "title": {
+        "en": "Precision Work",
+        "de": "Präzisionsarbeit"
+      },
+      "description": {
+        "en": "Add 100 links to headings or blocks",
+        "de": "Füge 100 Links auf Überschriften oder Blöcke hinzu"
+      }
+    },
+    {
+      "id": "first_external_link",
+      "category": "features",
+      "rarity": "common",
+      "icon": "globe",
+      "reward": 10,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "externalLinks",
+        "min": 1
+      },
+      "title": {
+        "en": "Out into the World",
+        "de": "Weltoffen"
+      },
+      "description": {
+        "en": "Add a link to a website",
+        "de": "Füge einen Link auf eine Website hinzu"
+      }
+    },
+    {
+      "id": "external_links_500",
+      "category": "features",
+      "rarity": "rare",
+      "icon": "external-link",
+      "reward": 100,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "externalLinks",
+        "min": 500
+      },
+      "title": {
+        "en": "Link Hoarder",
+        "de": "Linksammler"
+      },
+      "description": {
+        "en": "Add 500 links to websites",
+        "de": "Füge 500 Links auf Websites hinzu"
+      }
+    },
+    {
+      "id": "first_comment",
+      "category": "features",
+      "rarity": "common",
+      "icon": "message-circle",
+      "reward": 10,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "comments",
+        "min": 1
+      },
+      "title": {
+        "en": "Marginalia",
+        "de": "Randnotiz"
+      },
+      "description": {
+        "en": "Write a hidden comment with %%…%%",
+        "de": "Schreibe einen versteckten Kommentar mit %%…%%"
+      }
+    },
+    {
+      "id": "properties_100",
+      "category": "features",
+      "rarity": "rare",
+      "icon": "list",
+      "reward": 75,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "properties",
+        "min": 100
+      },
+      "title": {
+        "en": "Metadata Enthusiast",
+        "de": "Metadaten-Fan"
+      },
+      "description": {
+        "en": "Add 100 properties",
+        "de": "Füge 100 Eigenschaften hinzu"
+      }
+    },
+    {
+      "id": "first_open_task",
+      "category": "features",
+      "rarity": "common",
+      "icon": "list-todo",
+      "reward": 10,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "openTasks",
+        "min": 1
+      },
+      "title": {
+        "en": "Planning Ahead",
+        "de": "Vorausschauend"
+      },
+      "description": {
+        "en": "Write an open task",
+        "de": "Schreibe eine offene Aufgabe"
+      }
+    },
+    {
+      "id": "first_nested_tag",
+      "category": "features",
+      "rarity": "common",
+      "icon": "git-branch",
+      "reward": 15,
+      "added": "0.3.0",
+      "condition": {
+        "type": "feature",
+        "feature": "nestedTags",
+        "min": 1
+      },
+      "title": {
+        "en": "Hierarchy",
+        "de": "Hierarchie"
+      },
+      "description": {
+        "en": "Use a nested tag like #a/b",
+        "de": "Nutze einen verschachtelten Tag wie #a/b"
       }
     },
     {

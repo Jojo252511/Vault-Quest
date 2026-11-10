@@ -1,14 +1,35 @@
 import data from "../data/achievements.json";
 import { emptyDay } from "../defaults";
 import type { DayStats, Progress, Totals } from "../types";
+import type { Feature } from "./features";
 import { levelInfo } from "./levels";
+import { emptyVaultStats, type VaultStat, type VaultStats } from "./vault";
 import { dayKey } from "./text";
 
 export type Rarity = "common" | "rare" | "epic" | "legendary";
-export type Category = "writing" | "structure" | "tasks" | "level" | "streak" | "time" | "quests" | "special";
+export type Category =
+  | "writing"
+  | "structure"
+  | "tasks"
+  | "features"
+  | "level"
+  | "streak"
+  | "time"
+  | "quests"
+  | "special";
 
 export const RARITIES: Rarity[] = ["common", "rare", "epic", "legendary"];
-export const CATEGORIES: Category[] = ["writing", "structure", "tasks", "level", "streak", "time", "quests", "special"];
+export const CATEGORIES: Category[] = [
+  "writing",
+  "structure",
+  "tasks",
+  "features",
+  "level",
+  "streak",
+  "time",
+  "quests",
+  "special",
+];
 
 /**
  * Declarative unlock condition, as written in src/data/achievements.json.
@@ -21,6 +42,8 @@ export const CATEGORIES: Category[] = ["writing", "structure", "tasks", "level",
  * - date: words written on a matching calendar day; `month` (1-12), `day` (1-31) and
  *   `weekdays` (0 = Sunday ... 6 = Saturday) are optional and combined with AND
  * - comeback: writing again after at least `gapDays` days without writing
+ * - feature: a Markdown feature (images, code blocks, ...) was added `min` times in total
+ * - vault: a fact about the vault's structure (folders, attachments, ...) reaches `min`
  */
 export type Condition =
   | { type: "total"; stat: keyof Totals; min: number }
@@ -31,7 +54,9 @@ export type Condition =
   | { type: "allQuestsToday" }
   | { type: "activeDays"; min: number }
   | { type: "date"; month?: number; day?: number; weekdays?: number[] }
-  | { type: "comeback"; gapDays: number };
+  | { type: "comeback"; gapDays: number }
+  | { type: "feature"; feature: Feature; min: number }
+  | { type: "vault"; stat: VaultStat; min: number };
 
 export interface LocalizedText {
   en: string;
@@ -66,6 +91,8 @@ export interface AchievementContext {
   dayKey: string;
   day: DayStats;
   noteCount: number;
+  /** Current vault structure; empty while replaying past days. */
+  vault: VaultStats;
 }
 
 export function evaluate(cond: Condition, c: AchievementContext): boolean {
@@ -105,6 +132,10 @@ export function evaluate(cond: Condition, c: AchievementContext): boolean {
       }
       return previous !== null && daysBetween(previous, c.dayKey) >= cond.gapDays;
     }
+    case "feature":
+      return (c.progress.features[cond.feature] ?? 0) >= cond.min;
+    case "vault":
+      return (c.vault[cond.stat] ?? 0) >= cond.min;
     default:
       return false;
   }
@@ -118,13 +149,18 @@ function daysBetween(a: string, b: string): number {
   return Math.round((toUtc(b) - toUtc(a)) / 86_400_000);
 }
 
-export function buildContext(progress: Progress, noteCount: number, key: string = dayKey()): AchievementContext {
+export function buildContext(
+  progress: Progress,
+  vault: VaultStats = emptyVaultStats(),
+  key: string = dayKey(),
+): AchievementContext {
   return {
     progress,
     level: levelInfo(progress.xp).level,
     dayKey: key,
     day: progress.days[key] ?? emptyDay(),
-    noteCount,
+    noteCount: vault.notes,
+    vault,
   };
 }
 

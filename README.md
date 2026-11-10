@@ -7,7 +7,7 @@ Interface in English and German (follows Obsidian's language or can be set manua
 ## Features
 
 - **XP and levels:** every new word, note, link, tag and completed task earns XP. Your level and XP bar sit in the status bar at the bottom. Hover for details, click to open the achievements.
-- **Achievements:** 76 achievements in eight categories (writing, structure, tasks, level, streaks, time and calendar, quests, secret) with four rarities, defined in a JSON file. Each unlock shows a notification and grants bonus XP.
+- **Achievements:** 113 achievements in nine categories (writing, structure, tasks, Markdown and Obsidian features, level, streaks, time and calendar, quests, secret) with four rarities, defined in a JSON file. Each unlock shows a notification and grants bonus XP.
 - **Retroactive import:** on first start, Vault Quest scans your existing notes and unlocks everything you have already earned. Each note is dated by its `date`/`created` frontmatter, a `YYYY-MM-DD` date in the file name, or its creation time, so achievements, streaks and statistics get real dates.
 - **Daily quests:** three new quests every day (e.g. "Write 500 words", "Complete 3 tasks"). They only count what you do after they were issued.
 - **Streaks:** a day counts when you write at least 50 words (configurable).
@@ -99,7 +99,7 @@ All achievements live in [`src/data/achievements.json`](src/data/achievements.js
 
 | Field | Values |
 | --- | --- |
-| `category` | `writing`, `structure`, `tasks`, `level`, `streak`, `time`, `quests`, `special` (shown as "Secret") |
+| `category` | `writing`, `structure`, `tasks`, `features`, `level`, `streak`, `time`, `quests`, `special` (shown as "Secret") |
 | `rarity` | `common`, `rare`, `epic`, `legendary` |
 | `icon` | A [Lucide](https://lucide.dev/icons) icon name. Avoid recently renamed icons, older Obsidian versions don't know the new names. |
 | `reward` | Bonus XP on medium difficulty (scaled by the difficulty) |
@@ -118,6 +118,8 @@ Condition types:
 | `date` | `month`, `day`, `weekdays` (all optional) | words are written on a matching day; `weekdays`: 0 = Sunday ... 6 = Saturday |
 | `comeback` | `gapDays` | writing again after at least `gapDays` days without writing |
 | `allQuestsToday` | | all daily quests of a day are done |
+| `feature` | `feature`, `min` | a Markdown feature was added `min` times in total. `feature`: `images`, `codeBlocks`, `mermaid`, `dataview`, `callouts`, `tables`, `math`, `footnotes`, `noteEmbeds`, `pdfEmbeds`, `mediaEmbeds`, `headings`, `highlights`, `strikethrough`, `deepLinks` (links to headings/blocks), `externalLinks`, `comments` (`%%`), `properties`, `openTasks`, `nestedTags` |
+| `vault` | `stat`, `min` | the vault structure reaches `min`. `stat`: `notes`, `folders`, `maxSubfolders` (folders inside one folder), `maxFolderDepth`, `maxNotesInFolder`, `attachments`, `images`, `pdfs`, `canvases`, `bases`, `drawings` (Excalidraw) |
 
 Rules: never rename or remove an existing `id` (it is stored in users' progress), and set `added` to the version that ships the achievement. `npm test` validates every entry.
 
